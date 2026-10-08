@@ -1,0 +1,853 @@
+{
+  "metadata": {
+    "title": "GCP Professional Machine Learning Engineer — Mock Test Question Bank",
+    "source_file": "PMLE GCP Learning Document.docx",
+    "total_questions": 56,
+    "total_topics": 13,
+    "options_per_question": 4,
+    "answer_indexing": "1-based",
+    "answer_source": "Correct Answer field in the Word document; Word formatting can be cross-checked separately."
+  },
+  "questions": [
+    {
+      "id": 1,
+      "topic_number": 1,
+      "topic": "Machine Learning Monitoring, Skew, and Drift Detection",
+      "question_number": 1,
+      "question": "You are building an ML model to predict customer churn for a subscription service. You have trained your model on GenAI Enterprise Agent Platform using historical data, and deployed it to an Agent Platform endpoint for real-time predictions. After a few weeks, you notice that the model's performance, measured by AUC (area under the ROC curve), has dropped significantly in production compared to its performance during training. How should you troubleshoot this problem?",
+      "options": [
+        "Monitor the latency of the endpoint to determine whether predictions are being generated within the expected time frame.",
+        "Use explainable AI tooling to analyze model predictions and understand the impact of each feature on the model's predictions.",
+        "Monitor the resource utilization of the endpoint, such as CPU and memory usage, to identify potential bottlenecks in performance.",
+        "Monitor the training/serving skew of feature values for requests sent to the endpoint."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: A drop in production AUC compared to training evaluation directly indicates training-serving skew or feature drift. Tracking feature value distributions between training data and serving requests identifies whether data transformation discrepancies or distribution shifts caused the accuracy degradation. Resource and latency metrics measure infrastructure health rather than predictive performance degradation."
+    },
+    {
+      "id": 2,
+      "topic_number": 1,
+      "topic": "Machine Learning Monitoring, Skew, and Drift Detection",
+      "question_number": 2,
+      "question": "You maintain a fraud detection model hosted on an Agent Platform endpoint. You trained the model on transaction data from the previous year. Recently, the fraud investigation team reported an increase in false negatives. You suspect that the distribution of new transaction data has shifted significantly compared to the baseline distribution used during training. You need to validate this hypothesis using a managed solution. What should you do?",
+      "options": [
+        "Configure the endpoint to use Model Monitoring. Enable training-serving skew detection, and provide the training dataset as the baseline.",
+        "Configure the endpoint to use Model Monitoring. Enable prediction drift detection to compare the current hour's traffic against the previous hour's traffic.",
+        "Deploy a new version of the model trained on the same data. Enable feature distribution monitoring in Model Monitoring to track the sampled SHAP values stored for each prediction.",
+        "Create a Cloud Logging sink to export the prediction request logs to BigQuery. Write a SQL query to calculate the mean and variance of new features, and compare them to the distribution of the training data."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Vertex AI Model Monitoring natively detects training-serving skew by calculating distance metrics between historical training baseline datasets and live serving payloads. Hourly drift detection compares short-term serving windows against preceding windows rather than the original training baseline. Writing custom SQL queries adds manual overhead when a managed platform feature exists."
+    },
+    {
+      "id": 3,
+      "topic_number": 1,
+      "topic": "Machine Learning Monitoring, Skew, and Drift Detection",
+      "question_number": 3,
+      "question": "You work for a large manufacturing company that uses thousands of sensors across its production line. These sensors generate a massive amount of operational data monthly. You have designed an early warning detection model in Agent Platform that monitors for critical machinery and equipment failures. You need to monitor for data and concept drift. You need to assess the model performance given the massive volume of incoming prediction requests. What should you do?",
+      "options": [
+        "Create an additional Agent Platform endpoint. Deploy the model to the new endpoint. Enable robust logging on the endpoint that serves inference assist for critical machinery.",
+        "Use Cloud Run functions to trigger the Model Monitoring only during peak production hours estimates to analyze BigQuery data.",
+        "Configure the endpoint to log all traffic to BigQuery. Schedule a daily manual evaluation in Agent Platform / custom PyTorch job that analyzes drift in the previous day's data.",
+        "Configure a Model Monitoring job for the endpoint. Set the Sample rate to a fraction of the traffic and monitor for feature drift, prediction drift, and model performance."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: For high-throughput streams (petabytes or millions of queries), logging and analyzing 100% of prediction traffic is cost-prohibitive and computationally inefficient. Sampling a representative fraction of serving payloads via Vertex AI Model Monitoring allows continuous drift and skew detection while keeping compute costs minimal."
+    },
+    {
+      "id": 4,
+      "topic_number": 1,
+      "topic": "Machine Learning Monitoring, Skew, and Drift Detection",
+      "question_number": 4,
+      "question": "You have deployed a customer churn prediction model to an Agent Platform endpoint. You want to implement a continuous training pipeline that retrains the model when the statistical distribution of the input features in production deviates significantly from the baseline training data. What should you do?",
+      "options": [
+        "Create an Agent Platform Pipelines job that runs on a daily schedule. Include a component that calculates the descriptive statistics of the previous day's production logs and compares them to the training baseline. If deviation is found, the pipeline continues to the retraining component.",
+        "Use Agent Platform Experiments to compare the production model AUC vs new AUC over against a later threshold. Trigger a retraining job.",
+        "Configure the endpoint to use Model Monitoring to detect training-serving skew. Set an alert to trigger a Pub/Sub that triggers a Cloud Run function to launch the retraining pipeline.",
+        "Deploy a new model version alongside the production model using shadow testing. If the new model demonstrates better performance than the production model, automatically promote the new model to replace the old model."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Event-driven architecture is the standard pattern for Continuous Training (CT) in Vertex AI. Model Monitoring continuously evaluates incoming requests. When feature skew or drift exceeds set thresholds, it emits Cloud Monitoring alerts to a Cloud Pub/Sub topic, which triggers a Cloud Run function or Cloud Workflows to launch a Vertex AI Pipeline execution. Detailed Topic Explanation BigQuery ML (BQML) enables operationalizing machine learning directly inside BigQuery using standard SQL queries without exporting data to external frameworks. Time Series Forecasting (ARIMA_PLUS / ARIMA_PLUS_XREG): Designed for demand, sales, and resource forecasting. The ARIMA_PLUS pipeline automatically handles time series modeling tasks, including trend decomposition, seasonality detection (daily, weekly, yearly), holiday effect adjustments, spike/anomaly smoothing, and missing data imputation. Multi-Time Series Forecasting (TIME_SERIES_ID_COL): Allows fitting thousands of distinct time series models (e.g., across multiple warehouse locations or product SKUs) in a single CREATE MODEL statement. Feature Transformation (TRANSFORM clause): Preprocessing functions embedded directly inside the CREATE MODEL definition. Features specified in TRANSFORM are automatically stored as part of the model object and applied consistently during ML.PREDICT or ML.FORECAST execution. Real-Life Example A nationwide logistics vendor needs to forecast daily shipped packages across 500 distinct regional warehouses. Instead of extracting data out of BigQuery into custom Python scripts, building 500 separate Prophet or ARIMA pipelines, and managing feature extraction scripts: SQL Native Execution: A single CREATE MODEL statement uses TIME_SERIES_ID_COL='warehouse_id' and TIME_SERIES_TIMESTAMP_COL='shipment_date'. Automated Preprocessing: BQML builds 500 individual ARIMA_PLUS sub-models in parallel. It handles missing records, removes outlier spikes from sudden weather delays, incorporates local holiday calendars, and outputs future demand predictions using ML.FORECAST. How to Work With BQML ARIMA_PLUS Step 1: Create the Forecasting Model Run a SQL statement in BigQuery Studio to build multi-time-series models across multiple entities. SQL CREATE OR REPLACE MODEL `my_project.inventory.warehouse_forecast_model` OPTIONS( MODEL_TYPE = 'ARIMA_PLUS', TIME_SERIES_TIMESTAMP_COL = 'shipment_date', TIME_SERIES_DATA_COL = 'total_packages', TIME_SERIES_ID_COL = 'warehouse_id', HOLIDAY_REGION = 'US', AUTO_ARIMA = TRUE ) AS SELECT warehouse_id, shipment_date, total_packages FROM `my_project.inventory.daily_shipment`; Step 2: Generate Predictions via SQL Forecast future values over a horizon period (e.g., 30 days) using ML.FORECAST. SQL SELECT * FROM ML.FORECAST( MODEL `my_project.inventory.warehouse_forecast_model`, STRUCT(30 AS horizon, 0.95 AS confidence_level) ); Categorized Exam Questions"
+    },
+    {
+      "id": 5,
+      "topic_number": 2,
+      "topic": "BigQuery ML, Time Series Forecasting (ARIMA_PLUS), and Data Engineering",
+      "question_number": 1,
+      "question": "You work for a logistics company. You have a BigQuery table named daily_shipment. This table contains historical data with three columns: warehouse_id, shipment_date, and total_packages. You want to create a model that uses SQL to forecast the daily total_packages for each warehouse_id. You want the solution to automatically detect and account for data anomalies, holidays, and seasonality without requiring manual feature engineering. What should you do?",
+      "options": [
+        "Use the CREATE MODEL statement with model_type='ARIMA_PLUS_XREG'. Generate the forecast using the ML.FORECAST command.",
+        "Use the CREATE MODEL statement with model_type='ARIMA_PLUS', TIME_SERIES_DATA_COL option and shipment_date in the TIME_SERIES_TIMESTAMP_COL option, alongside TIME_SERIES_ID_COL='warehouse_id'. Generate the forecast using the ML.FORECAST command.",
+        "Use the CREATE MODEL statement with model_type='ARIMA_PLUS'. Scale the total_packages column using ML.BUCKETIZE. Generate the forecast using the ML.PREDICT command.",
+        "Use the CREATE MODEL statement with model_type='ARIMA_PLUS'. Scale the total_packages column and add holiday logic manually. Generate the forecast using the ML.FORECAST command."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: ARIMA_PLUS automatically performs anomaly detection, seasonal adjustments, and holiday incorporation. Using TIME_SERIES_ID_COL trains distinct time series models for every unique warehouse_id inside the table. Predictions are generated via ML.FORECAST."
+    },
+    {
+      "id": 6,
+      "topic_number": 2,
+      "topic": "BigQuery ML, Time Series Forecasting (ARIMA_PLUS), and Data Engineering",
+      "question_number": 2,
+      "question": "You recently used BigQuery ML to train an AutoML regression model. You shared results with your team and received positive feedback. You need to deploy your model for online prediction as quickly as possible while maintaining model lineage. What should you do?",
+      "options": [
+        "Export the model from BigQuery ML to Cloud Storage, and import the model to Model Registry. Deploy the model to an Agent Platform endpoint.",
+        "Retrain the model by using BigQuery ML, and specify Agent Platform as the model registry. Deploy the model from Model Registry to an Agent Platform endpoint.",
+        "Retrain the model by using Agent Platform. Deploy the model from Model Registry to an Agent Platform endpoint.",
+        "Alter the model by using BigQuery ML, and specify Agent Platform as the model registry. Deploy the model from Model Registry to an Agent Platform endpoint."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: BigQuery ML integrates natively with Vertex AI Model Registry. By setting VERTEX_AI_MODEL_REGISTRY='default' during training, BigQuery ML automatically exports and registers the model in Vertex AI, preserving training lineage and making it immediately available for online endpoint deployment."
+    },
+    {
+      "id": 7,
+      "topic_number": 2,
+      "topic": "BigQuery ML, Time Series Forecasting (ARIMA_PLUS), and Data Engineering",
+      "question_number": 3,
+      "question": "You are in the exploratory phase of development of a demand forecasting model. Several terabytes of historical sales data are stored in a BigQuery table. You need to create a new, clean table to perform preliminary analysis on metrics, such as monthly sales figures and weekly aggregates, without additional data movement. You want to use the simplest approach and minimize overhead. What should you do?",
+      "options": [
+        "Write a SQL query in the BigQuery console. Use standard SQL functions like CAST, EXTRACT, and window functions with GROUP BY clauses to perform the transformations and calculations. Materialize the results into a new destination table in BigQuery.",
+        "Read the data from BigQuery into a Dask DataFrame using Agent Platform Workbench. Perform exploratory data analysis (EDA) and feature engineering transformations, and write the processed data back to a new destination table in BigQuery.",
+        "Write a SQL query in the BigQuery console. Use the ML.TRANSFORM function in BigQuery ML to compute the moving averages and extract time-based features. Write the processed data to a new destination table in BigQuery.",
+        "Create a PreprocessingOp component in the Agent Platform Pipelines workflow to compute the moving averages and time-based features and write the processed data to a new destination table in BigQuery."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Data is already in BigQuery. Using standard SQL directly inside BigQuery processes terabytes in seconds using serverless compute without moving data across network boundaries or creating pipelines. ML.TRANSFORM is designed for pre-preprocessing inside CREATE MODEL definitions, not for generating standalone exploratory tables."
+    },
+    {
+      "id": 8,
+      "topic_number": 2,
+      "topic": "BigQuery ML, Time Series Forecasting (ARIMA_PLUS), and Data Engineering",
+      "question_number": 4,
+      "question": "You are the lead ML engineer for a large ecommerce company. The Data Analytics team has prepared a dataset with millions of transaction rows stored in a partitioned BigQuery table. The team consists primarily of SQL experts with limited experience in Python or TensorFlow. You need to build a binary classification model to predict customer purchases. You need to provide daily batch predictions while minimizing development effort, data movement, and overall complexity. What should you do?",
+      "options": [
+        "Create a model with BigQuery ML that includes MODEL_TYPE='AUTOML_CLASSIFIER'. Use the ML.PREDICT function to generate predictions as part of your nightly data warehouse jobs.",
+        "Use the BigQuery ML TRANSFORM function to normalize features and train a MODEL_TYPE='LOGISTIC_REG' model. Use ML.PREDICT for predictions.",
+        "Train a classification model with Agent Platform AutoML Tabular Workflows, deploy to an endpoint, and use Cloud Run for batch predictions.",
+        "Develop an XGBoost model on an Agent Platform Workbench notebook. Load data into pandas DataFrames, pickle it to Cloud Storage, and schedule the notebook."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: MODEL_TYPE='AUTOML_CLASSIFIER' in BigQuery ML leverages Vertex AI AutoML capabilities directly inside SQL. This keeps all data inside BigQuery, avoids data egress, requires zero Python code, and integrates directly into nightly SQL batch scheduling. Detailed Topic Explanation Machine learning models rely on high-quality features, but online inference and offline training often require features computed at different time steps. Training-Serving Skew in Features: If an online model uses feature values updated in real time, but offline training joins historical logs with the current feature values, the model learns from \"future\" data (data leakage). Point-in-Time (Time-Travel) Lookup: Vertex AI Feature Store allows running point-in-time joins. Given a list of entity IDs and historical timestamps, Feature Store fetches the exact feature values present at those specific moments in history. Streaming Feature Ingestion: Apache Beam / Dataflow pipelines process continuous real-time events (e.g., from Pub/Sub) and write aggregated metrics (like 1-hour transaction counts) directly to Feature Store for ultra-low latency online serving. Real-Life Example A credit card provider evaluates fraud risk in real time. One key feature is count_transactions_last_1_hour. At Online Inference: The model queries Vertex AI Feature Store to get the current value of count_transactions_last_1_hour for a customer attempting a transaction at 2:15 PM. At Offline Retraining: For a transaction that occurred three months ago at 10:00 AM, the training pipeline must look up what count_transactions_last_1_hour was at 10:00 AM three months ago, not what it is today. A point-in-time lookup fetches this historical snapshot automatically. How to Work With Vertex AI Feature Store Point-in-Time Lookups Step 1: Define Your Entity Observations Table in BigQuery Create a table containing the entity IDs and the historical timestamps for training. SQL SELECT user_id, transaction_time, is_fraud FROM `my_project.fraud.historical_transactions` Step 2: Trigger Point-in-Time Batch Serving via Python SDK Python from google.cloud import aiplatform aiplatform.init(project=\"my-project\", location=\"us-central1\") entity_type = aiplatform.Featurestore(\"projects/12345/locations/us-central1/featurestores/fraud_fs\"). entity_types[\"user\"] # Run point-in-time lookup entity_type.batch_read_feature_values( destination_table_uri=\"bq://my_project.fraud.training_dataset\", feature_selector=[\"count_transactions_last_1_hour\", \"avg_amount_30_days\"], entity_type_specs=[ { \"entity_type_id\": \"user\", \"bq_source_uri\": \"bq://my_project.fraud.historical_transactions\", \"feature_ids\": [\"count_transactions_last_1_hour\", \"avg_amount_30_days\"] } ] ) Categorized Exam Questions"
+    },
+    {
+      "id": 9,
+      "topic_number": 3,
+      "topic": "Feature Store, Point-in-Time Joins, and Dataflow Streaming",
+      "question_number": 1,
+      "question": "You are designing an Agent Platform Pipelines workflow for a real-time credit card fraud detection model. The model relies on dynamic features that change frequently, such as \"number of transactions in the last hour,\" which you calculate continuously in Agent Platform Feature Store. You are preparing the training dataset using historical transaction logs. You need to ensure that the feature values associated with the historical transaction in the training set accurately reflect the user state at the time of the transaction. You want to use the simplest approach. What should you do?",
+      "options": [
+        "Configure the pipeline to run a batch serving job from Agent Platform Feature Store. Point the job to the transaction IDs and their timestamps to perform a point-in-time lookup to create the training dataset.",
+        "Configure the pipeline to export the current feature values from Agent Platform Feature Store to BigQuery. Write a SQL query to join those values with the historical transaction logs to create the training dataset.",
+        "Create a Dataflow pipeline that ingests the historical transaction logs, groups them by user, and calculates the new aggregated statistics. Store the results in Cloud Storage for the training pipeline to consume.",
+        "Create a Dataflow pipeline that reads the historical transaction logs. For each transaction, configure the pipeline to query the Agent Platform Feature Store online serving to retrieve the feature values. Join the feature values with the transaction data to create the training dataset."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Point-in-time lookup is a managed capability of Vertex AI Feature Store designed specifically to prevent data leakage in time-series training data. It fetches feature values matching the historical transaction timestamp without manual joins or building complex custom data processing scripts."
+    },
+    {
+      "id": 10,
+      "topic_number": 3,
+      "topic": "Feature Store, Point-in-Time Joins, and Dataflow Streaming",
+      "question_number": 2,
+      "question": "Your team is deploying a real-time personalized recommendation model. The model requires low-latency access for hundreds of raw features to be fetched at request time. These features are stored in BigQuery and updated frequently by a streaming pipeline. As your team continues to grow, you discover that fetching features from BigQuery at request time is causing the total latency during serving to exceed your 100 ms SLA. You need to process concurrent retrieval automatically while minimizing operational overhead. What should you do?",
+      "options": [
+        "Use BigQuery BI Engine to accelerate the SQL queries used to fetch features.",
+        "Enable Agent Platform Feature Store, and use the Feature Store API to fetch features.",
+        "Use the BigQuery Storage / Feature Store Client to stream data directly from the model inference cluster.",
+        "Implement a Redis cache on Memorystore and add a component to the solution monitoring to sync with the feature store on the fly."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Vertex AI Feature Store provides a low-latency, high-throughput online serving layer optimized for sub-100ms real-time inference calls. Querying analytical data warehouses like BigQuery directly during online inference introduces unacceptable latency."
+    },
+    {
+      "id": 11,
+      "topic_number": 3,
+      "topic": "Feature Store, Point-in-Time Joins, and Dataflow Streaming",
+      "question_number": 3,
+      "question": "You work in the credit card fraud detection department of a bank that processes millions of transactions per day. You need to create and serve a real-time fraud detection model. To address the challenge of feature engineering at this scale with limited raw data, you plan to create time-related aggregate features, such as the average transaction amount within the last month or the amount of time since the last transaction. How should you process the data for model training and serving?",
+      "options": [
+        "Ingest the transaction data into BigQuery. Use a TRANSFORM model in BigQuery ML to create a reusable feature engineering pipeline.",
+        "Orchestrate a workflow in Agent Platform Pipelines that exports raw transaction data from BigQuery to Cloud Storage. Perform feature engineering using a Python script in a custom component.",
+        "Ingest the transaction data into BigQuery. Use the TRANSFORM clause in BigQuery ML to create new features by applying SQL functions to the raw transaction data.",
+        "Create streaming Dataflow pipelines that read transaction data from Pub/Sub. Use a windowing function to aggregate transaction data over time. Store the engineered features in Agent Platform Feature Store."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Real-time fraud detection requires continuously updated streaming aggregate features (e.g., sliding 1-hour or 30-day windows). Dataflow natively handles streaming window aggregations from Pub/Sub, and writing the computed aggregates into Vertex AI Feature Store makes them immediately available for low-latency online inference. Detailed Topic Explanation Deploying Generative AI applications at enterprise scale requires balancing model capability with cost, latency, safety, and operational control: Retrieval-Augmented Generation (RAG) vs. Supervised Fine-Tuning (SFT): RAG grounds foundational models with dynamic internal knowledge (e.g., PDF documentation, databases) to eliminate hallucinations and reflect daily updates without retraining. SFT (Supervised Fine-Tuning) is ideal when the model must learn specific output styles, specialized syntax (e.g., internal code constructs), or structured behaviors. Explicit Context Caching: When sending large, static reference materials (e.g., manuals or multiple enterprise PDFs) in context windows repeatedly, Explicit Context Caching stores preprocessed tokens in memory. This reduces latency and input token costs by up to 80% for high-volume repeat queries. Model Armor & Sensitive Data Protection: Model Armor acts as an inline AI firewall to intercept and screen prompts and responses against jailbreak attacks, prompt injections, and toxic content before or after reaching the LLM. Integrated with Sensitive Data Protection (DLP), it scans for and de-identifies Personally Identifiable Information (PII). AutoSxS (Automatic Side-by-Side): A fully managed pipeline component that acts as an \"LLM-as-a-judge\" to evaluate and score two model versions automatically based on specific evaluation criteria. Real-Life Example A commercial bank builds a customer service chatbot. Context Caching & RAG: The bank's 500-page policy document is stored in Cloud Storage. Instead of sending the full document with every API request, the system creates an Explicit Context Cache. User questions about interest rates are served instantly with lower latency and cheaper token fees. Model Armor & PII Filtering: When a user asks a question containing their credit card or social security number, Model Armor with Sensitive Data Protection automatically redacts the sensitive PII before passing the prompt to the model and scrubs any private details from the generated output. AutoSxS Evaluation: Before deploying a fine-tuned Gemini model to replace an existing baseline model, the team runs an AutoSxS evaluation pipeline to systematically score response quality. How to Work With Explicit Context Caching in Python Step 1: Create an Explicit Context Cache for Large Static Documents Python import datetime from google import genai from google.genai import types client = genai.Client(project=\"my-project\", location=\"us-central1\") # Create explicit cache with a 7-day Time-To-Live (TTL) cache = client.caches.create( model=\"gemini-1.5-pro\", config=types.CreateCachedContentConfig( contents=[ types.Part.from_uri( file_uri=\"gs://my-bucket/company_policy_manual.pdf\", mime_type=\"application/pdf\" ) ], ttl=datetime.timedelta(days=7), ) ) print(f\"Cache created: {cache.name}\") Step 2: Generate Content Using the Cached Context Python response = client.models.generate_content( model=\"gemini-1.5-pro\", contents=\"What is the policy for international wire transfers?\", config=types.GenerateContentConfig( cached_content=cache.name ) ) print(response.text) Categorized Exam Questions"
+    },
+    {
+      "id": 12,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 1,
+      "question": "Your organization's employee onboarding team wants you to build an interactive self-help app for new employees. The app needs to answer queries from users and provide answers from the organization's internal documentation. This documentation is stored across various documents such as PDF files. You want to build a solution quickly while minimizing maintenance overhead. What should you do?",
+      "options": [
+        "Deploy an internal website to a Google Kubernetes Engine (GKE) cluster. Build a search index for the organization's internal documentation. Use Vector Search to implement a semantic search that retrieves results from the search index based on the query entered into the search box.",
+        "Create a custom chatbot user interface hosted on App Engine. Use Agent Platform or fine-tune a Gemini model on the organization's internal documentation. Send users' queries to the fine-tuned model by using the custom chatbot and return the model's responses to the users.",
+        "Deploy an internal website to a Google Kubernetes Engine (GKE) cluster. Organize the relevant internal documentation into sections. Collect user feedback on website content and store in BigQuery. Recalculate the embeddings and regularly update the links based on user feedback.",
+        "Use Agent Search to create an agent. Securely index the organization's internal documentation to the agent's datastore. Send users' queries to the agent and return the agent's grounded responses to the users."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Vertex AI Search (Agent Search) is a fully managed out-of-the-box solution designed specifically for turn-key document indexing and Retrieval-Augmented Generation (RAG). It ingests unorganized PDF documentation directly with minimal setup, eliminating the need to manage infrastructure like GKE, custom vector stores, or application hosting code."
+    },
+    {
+      "id": 13,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 2,
+      "question": "Your team is experimenting with fine-tuning smaller, distilled LLMs for a specific domain. You have performed batch inference and are evaluating using two variations of your distilled LLMs and stored the batch inference outputs in Cloud Storage. You need to create an evaluation workflow that integrates with your existing pipeline in Agent Platform. You need to assess the performance of the LLM versions while you are rapidly iterating. What should you do?",
+      "options": [
+        "Create a custom Agent Platform Pipelines component that reads the batch inference outputs from Cloud Storage, calculates evaluation metrics, and writes the results to a BigQuery table.",
+        "Use the automatic side-by-side (AutoSxS) Agent Platform Pipelines component that performs the batch inference evaluation from Cloud Storage, aggregates evaluation metrics, and writes the results to a BigQuery table.",
+        "Develop a custom component that reads the batch inference outputs from Cloud Storage, calculates evaluation metrics as a distributed runner, and writes the results to a BigQuery table.",
+        "Use a Dataflow component that processes the batch inference outputs from Cloud Storage, calculates evaluation metrics as a distributed runner, and writes the results to a BigQuery table."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: AutoSxS is a managed Vertex AI Pipelines component designed to evaluate two LLM outputs side-by-side using an LLM-as-a-judge. It eliminates writing custom evaluation scripts and integrates directly with pipeline artifacts stored in Google Cloud Storage and BigQuery."
+    },
+    {
+      "id": 14,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 3,
+      "question": "You are developing a Gemini-based onboarding chatbot to answer users' questions based on five PDFs encompassing information in Cloud Storage. The documents are updated weekly or monthly as needed. You expect that the application will receive high-volume, repeated queries against this documentation context. You need to use the most appropriate and cost-effective solution for managing the context and ensuring low latency for end-user information. What should you do?",
+      "options": [
+        "Fine-tune a Gemini model using the text from the five PDF files as a training dataset.",
+        "Send requests with the five PDF files as content pointing to the URI file. Use implicit context caching.",
+        "Create an explicit context cache using the five PDF files, and regenerate the cache when the source files are updated.",
+        "Create an explicit context cache using the five PDF files. Set a time-to-live (TTL) of seven days, and regenerate the cache when source files change."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Explicit context caching is specifically designed for scenarios where the same large static context (e.g., reference PDFs) is reused across high-volume requests. Regenerating the explicit cache only when source files are modified guarantees high response speeds and lower input token costs."
+    },
+    {
+      "id": 15,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 4,
+      "question": "Your team is developing a customer support chatbot for a healthcare company that processes sensitive patient information. You need to ensure that all personally identifiable information (PII) captured during customer conversations is protected prior to storing or analyzing the data. What should you do?",
+      "options": [
+        "Use the Cloud Natural Language API to identify and redact PII in chatbot conversations.",
+        "Use the Cloud Natural Language API to classify and categorize all data, including PII, in chatbot conversations.",
+        "Use the DLP API to encrypt PII in chatbot conversations before storing the data.",
+        "Use the DLP API to scan and de-identify PII in chatbot conversations before storing the data."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Sensitive Data Protection (formerly Cloud DLP API) is Google Cloud's dedicated service for discovering, scanning, and de-identifying (masking, redacting, tokenizing) PII in unstructured text. Natural Language API is intended for sentiment and syntactic analysis, not privacy masking."
+    },
+    {
+      "id": 16,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 5,
+      "question": "Your work for a media company that offers a news service. News articles are currently manually assigned multiple tags based on their content. You need to create a scalable solution that accurately and automatically tags articles. You have a historical dataset of 1 million articles with 120 distinct tags in a Cloud Storage bucket. Your team has limited experience with LLMs but has programming skills. What should you do?",
+      "options": [
+        "Import data to BigQuery, and apply the Gemini LLM API to the database. Insert multiple auto-tagging batch in the current model.",
+        "Use the Natural Language API to perform entity recognition directly on its Cloud Storage database. Use the extracted entities as tags.",
+        "Import data to BigQuery, and fine-tune the Gemini model from Model Garden using the dataset to customize it for tagging.",
+        "Fine-tune the Gemini model from Model Garden using Vertex AI Workbench notebook. Use the fine-tuned model for tagging directly on the Cloud Storage dataset."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: With 120 distinct domain-specific tags and 1 million examples, fine-tuning an LLM adapts the model to output precise tags matching internal business definitions. Ingesting data into BigQuery allows managed supervised fine-tuning directly through Vertex AI or BigQuery ML without manual training infrastructure management."
+    },
+    {
+      "id": 17,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 6,
+      "question": "You are orchestrating a continuous deployment pipeline in Agent Platform Pipelines for a fine-tuned Gemini model that summarizes complex legal documents. Before deploying each new model version to production, you need to systematically evaluate its summarization quality against the current production model. You want to use an automated, scalable approach that uses an LLM-as-judge and determine which model produces better summaries based on specific criteria. What should you do?",
+      "options": [
+        "Add a custom Python component that generates predictions from both models. Calculate the BLEU or ROUGE-L scores between the generated summaries and a golden dataset.",
+        "Integrate the Model Evaluation (classification) component into the pipeline. Configure the evaluation task as the summarization tokens as a multi-class classification problem, and calculate the perplexity score.",
+        "Add the automatic side-by-side (AutoSxS) pipeline component to your workflow. Configure the component to use the autorater service to score the responses of both models and compare their results.",
+        "Use the Gen AI evaluation service to run a standalone experiment comparing the responses of both models in an Agent Platform Colab Enterprise notebook."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: AutoSxS uses an automated autorater (LLM-as-a-judge) component natively inside Vertex AI Pipelines. Standard NLP metrics like BLEU or ROUGE measure surface token overlap rather than semantic summarization quality, making AutoSxS the best scalable approach."
+    },
+    {
+      "id": 18,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 7,
+      "question": "You have fine-tuned a Gemini model to act as a customer service agent for a bank. You need to proactively identify potential security risks specifically the model's vulnerability to adversarial jailbreak attacks. You want to perform this assessment systematically by generating adversarial prompts and scoring the model's responses using a fully managed service. What should you do?",
+      "options": [
+        "Configure Sensitive Data Protection to inspect the adversarial prompts. Create a custom infoType detector to identify patterns associated with jailbreak attacks and flag the model's responses for review.",
+        "Run the model evaluation service. Configure the job to use adversarial testing to identify jailbreak attempts and determine the model's refusal rate.",
+        "Create an Agent Platform batch prediction job using a dataset of historical jailbreak prompts. Analyze the outputs manually to calculate the percentage of responses blocked by the Agent Platform safety filters.",
+        "Deploy the model to an Agent Platform endpoint behind Model Armor. Review the Cloud Logging entries generated by Model Armor to identify which incoming requests trigger the jailbreak filter."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Vertex AI Model Evaluation provides managed evaluation capabilities specifically designed to run safety and security evaluations—including adversarial red-teaming and jailbreak evaluation suites—outputting quantitative refusal rates automatically."
+    },
+    {
+      "id": 19,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 8,
+      "question": "You have created a prototype of a real-time customer support virtual agent using Gemini Pro that has achieved great results. During load testing, you discover that the cost per query and the end-user latency are higher than expected. You need to reduce both cost and latency while maintaining high-quality responses. What should you do?",
+      "options": [
+        "Purchase Provisioned Throughput for the Gemini Pro model to reserve dedicated compute resources.",
+        "Re-engineer the virtual agent to use Gemini Flash to classify the user's intent. Answer simple queries using Gemini Flash, and route more complex queries to Gemini Pro.",
+        "Batch incoming user queries into groups of 15 before processing them with Gemini Pro.",
+        "Fine-tune a Gemini Flash model using high-quality responses collected from the Gemini Pro prototype, and route all business to this model."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Model routing (cascading) balances latency, cost, and response quality. Gemini Flash is lightweight, high-speed, and low-cost, making it ideal for intent classification and basic query answering, while reserving Gemini Pro for complex reasoning tasks."
+    },
+    {
+      "id": 20,
+      "topic_number": 4,
+      "topic": "Generative AI, LLMs, RAG, Context Caching, and Safety/Guardrails",
+      "question_number": 9,
+      "question": "You recently developed an internal custom RAG solution. The application performed well in a development environment on a set of PDF documents. However, after productionizing the application across your entire organization, model performance has degraded significantly. You need to maximize the solution's response accuracy and scalability. What should you do?",
+      "options": [
+        "Disable context caching in the Gemini API.",
+        "Split the RAG into smaller domain-specific architectures, and integrate them with a unified framework solution.",
+        "Migrate the matching engine to Vector Search.",
+        "Migrate your raw data to Datastore, and increase the chunk size."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: When scaling a RAG system from a handful of documents to enterprise scale, basic flat vector matching or in-memory vector indexing fails in both retrieval precision and query latency. Migrating the indexing and vector retrieval layer to Vertex AI Vector Search (formerly Matching Engine) provides enterprise-grade Approximate Nearest Neighbor (ANN) search across millions of embeddings with millisecond retrieval performance. Detailed Topic Explanation Deploying machine learning models for production inference on Google Cloud requires choosing the right balance between simplicity, customization, latency, and hardware acceleration: Custom Prediction Routines (CPR) vs. Custom Containers: When deploying custom frameworks (such as scikit-learn or PyTorch) that require preprocessing logic (e.g., image resizing, tokenization) alongside model evaluation: CPR: Provides a managed Python abstraction where developers write a simple Predictor class containing preprocess(), predict(), and postprocess() methods. Vertex AI builds and packages the container automatically. Custom Containers: Full Docker container control required for non-standard OS-level binaries, C++ dependencies, or complete control over execution environments. Endpoint Autoscaling Dynamics: Vertex AI Endpoint autoscaling scales replicas based on CPU or GPU metrics. If GPU usage is 90%+ while CPU is <40%, CPU-based autoscaling will fail to trigger new replicas, causing latency spikes. Autoscaling rules must monitor the bottleneck metric (GPU Duty Cycle). To prevent service degradation during sudden traffic spikes (e.g., flash sales jump from 1k to 50k QPS), min_replica_count must be set to a high baseline capacity to avoid initial cold-start autoscaling lag. Hardware Acceleration Strategies: Data Parallelism: Replicates model parameters across multiple GPUs/TPUs, splitting input data batches. Ideal when the model easily fits into individual GPU VRAM. Model/Pipeline Parallelism: Shards large model parameters (e.g., 70B–100B+ parameter LLMs) across the VRAM of multiple GPUs/TPUs when a single GPU suffers Out-Of-Memory (OOM) errors. Real-Life Example A retail application deploys a deep learning image classification model on a Vertex AI endpoint backed by NVIDIA GPUs. Pre/Post-Processing: Incoming HTTP requests send raw base64 image bytes. Instead of forcing client applications to resize images locally, the team uses a Custom Prediction Routine (CPR). The server-side preprocess() function decodes and normalizes images directly before running inference. Autoscaling Adjustment: During load testing, traffic increases caused 503 latency timeouts even though endpoint CPU usage stayed low. Engineers discovered the GPU was at 95% capacity while CPU stayed at 30%. Updating autoscaling target metrics to track GPU Duty Cycle resolved scaling bottlenecks. How to Work With Vertex AI Custom Prediction Routines (CPR) Step 1: Define Custom Predictor Class Python import os import pickle import numpy as np from google.cloud.aiplatform.prediction import Predictor class CustomTextPredictor(Predictor): def init (self): self._model = None def load(self, artifacts_uri: str) -> None: \"\"\"Loads model artifacts from Cloud Storage.\"\"\" model_path = os.path.join(artifacts_uri, \"model.pkl\") with open(model_path, \"rb\") as f: self._model = pickle.load(f) def preprocess(self, prediction_input: dict) -> np.ndarray: \"\"\"Transforms raw input JSON into normalized arrays.\"\"\" instances = prediction_input[\"instances\"] # Custom preprocessing logic (e.g., lowercasing, feature extraction) processed_data = np.array([text.lower().split() for text in instances]) return processed_data def predict(self, instances: np.ndarray) -> np.ndarray: \"\"\"Runs inference.\"\"\" return self._model.predict(instances) def postprocess(self, prediction_results: np.ndarray) -> dict: \"\"\"Formats output response.\"\"\" return {\"predictions\": prediction_results.tolist()} Step 2: Build and Deploy using Vertex AI SDK Python from google.cloud import aiplatform from google.cloud.aiplatform.prediction import LocalModel # Package custom predictor into a local container artifact local_model = LocalModel.build_cpr_model( src_dir=\"src/\", output_image_uri=\"gcr.io/my-project/custom-predictor:v1\", predictor=CustomTextPredictor, requirements_path=\"requirements.txt\" ) # Upload and deploy to Vertex AI Endpoint local_model.push_image() model = aiplatform.Model.upload( display_name=\"custom-cpr-model\", serving_container_image_uri=\"gcr.io/my-project/custom-predictor:v1\", artifact_uri=\"gs://my-bucket/model-artifacts/\" ) endpoint = model.deploy(machine_type=\"n1-standard-4\", min_replica_count=2) Categorized Exam Questions"
+    },
+    {
+      "id": 21,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 1,
+      "question": "You have recently trained a scikit-learn model that you plan to deploy on Gemini Enterprise Agent Platform. This model will support both online and batch prediction. You need to preprocess input data for model inference. You want to package your model for deployment while minimizing additional code. What should you do?",
+      "options": [
+        "Use a prebuilt scikit-learn prediction container to upload your model to the Model Registry.",
+        "Create a custom container for your scikit-learn model and define custom serving functions.",
+        "Use a custom prediction routine to create a custom container for your scikit-learn model. Upload your model to Model Registry and your custom container to Artifact Registry. Deploy your model to an Agent Platform endpoint.",
+        "Deploy the model on Cloud Run functions to execute data transformations."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Custom Prediction Routines (CPR) allow packaging model artifacts alongside custom preprocessing/postprocessing code into a container with minimal Boilerplate code compared to building a custom Dockerfile and API server from scratch."
+    },
+    {
+      "id": 22,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 2,
+      "question": "You have a high-traffic e-commerce application that uses a recommendation model deployed on an Agent Platform endpoint. During flash sales, traffic spikes from 1,000 to 50,000 queries per second (QPS). During these spikes, the application returns '503 / 429 Service Unavailable' errors because the autoscaler cannot provision new resources quickly enough to meet sudden demand. Your team wants to eliminate service disruptions during the start of the sale. How should you configure the endpoint?",
+      "options": [
+        "Change the machine type to an 'n1-highmem-8' instance with an NVIDIA L4 GPU.",
+        "Deploy the model to a private Agent Platform endpoint, and autoscale based on CPU utilization.",
+        "Set the 'min_replicas' count to 1 and the 'max_replicas' count to 10 in the deployment's automatic scaling configuration.",
+        "Increase the 'min_replicas' count to a baseline that covers a significant portion of the expected traffic, and set the 'max_replicas' count to 100."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Sudden traffic spikes (e.g., 50x surge) outpace cloud VM cold-start provisioning times. Setting min_replica_count higher ahead of scheduled traffic events pre-provisions capacity to absorb instant surges without dropping requests."
+    },
+    {
+      "id": 23,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 3,
+      "question": "You are training a 100-billion parameter LLM using an Agent Platform custom job on a single node. Your training script currently uses Distributed Data Parallel (DDP) but the job is failing with errors during initialization because the model weights and optimizer states exceed the VRAM of an individual GPU. You need to resolve the memory issue while maintaining training throughput on this hardware. What should you do?",
+      "options": [
+        "Use Cloud Profiler to identify memory leaks in the training loop and reduce the per-GPU batch size in it.",
+        "Enable Reduction Server in your Agent Platform custom job configuration to optimize gradient synchronization.",
+        "Configure a multi-node Agent Platform custom job using model parallelism to distribute the model state across the aggregate VRAM of all available GPUs.",
+        "Add three additional multi-A100 nodes by increasing node count and use data parallelism to replicate the model across four nodes."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Distributed Data Parallelism (DDP) requires replicating the entire model weights onto every GPU. For a 100B parameter model requiring hundreds of gigabytes of VRAM, the weights exceed single-GPU memory limits. Switching to model parallelism (or tensor/pipeline parallelism) shards model parameters across the aggregate VRAM of multiple GPUs."
+    },
+    {
+      "id": 24,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 4,
+      "question": "You have deployed a deep learning model to an Agent Platform endpoint using a machine type with NVIDIA GPUs. You initially configured the endpoint to autoscale based on a target CPU utilization of 60%. During a load test, you observe that prediction latency increases significantly as traffic rises, but the number of replicas remains constant. Cloud Monitoring indicates that GPU utilization consistently exceeds 90%, while CPU utilization stays below 40%. You need to ensure that the endpoint scales efficiently to handle increased load. What should you do?",
+      "options": [
+        "Increase the minimum replica count for the endpoint to match the peak load observed during testing.",
+        "Update the autoscaling configuration to scale based on the GPU duty cycle metric.",
+        "Redeploy the model to a machine type that includes a TPU.",
+        "Update the autoscaling configuration to decrease target CPU utilization to 20%."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: The endpoint failed to autoscale because the scaling policy monitored CPU usage, which stayed below the 60% trigger threshold. The bottleneck was GPU saturation. Changing the autoscaling metric to monitor GPU duty cycle ensures new replicas are provisioned when GPU hardware becomes saturated."
+    },
+    {
+      "id": 25,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 5,
+      "question": "You have trained a PyTorch model to classify customer reviews. The model requires input text to be tokenized and vectorized before inference. The client application sends raw review text in a REST API request. You need to deploy the model to Gemini Enterprise Agent Platform for online prediction. You want to implement preprocessing logic to minimize prediction latency and ensure code is strictly versioned with model artifacts. What should you do?",
+      "options": [
+        "Deploy the model to an Agent Platform endpoint using a prebuilt PyTorch container. Update the client application to tokenize text locally.",
+        "Upload the tokenizer vocabulary to Agent Platform Feature Store.",
+        "Deploy the model using a prebuilt PyTorch container and use Cloud Run as a proxy.",
+        "Use the Agent Platform custom inference routines (CPR) to build a container that includes a custom predictor class with the preprocessing logic. Deploy this container to an Agent Platform endpoint."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Custom Prediction Routines (CPR) allow bundling tokenization logic directly into the serving container. This satisfies all requirements: minimal inference latency (no external HTTP network hops), zero client-side logic updates, and strict co-versioning of code and model artifacts."
+    },
+    {
+      "id": 26,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 6,
+      "question": "You are using Gemini Enterprise Agent Platform with TPU v5e (16 GB HBM) Pods to train two different machine learning models at FP16. Model A is a computer vision model with 25 million parameters. Model B is an LLM with 70 billion parameters. You need to configure the distributed training strategy for both models to resolve memory constraints and minimize training latency. What should you do?",
+      "options": [
+        "Use data parallelism for Model A. Use model parallelism for Model B.",
+        "Use pipeline parallelism for Model A. Use data parallelism for Model B.",
+        "Use model parallelism for Model A. Use data parallelism for Model B.",
+        "Use data parallelism for Model A. Use data parallelism with gradient accumulation for Model B."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Model A (25M parameters) easily fits into the 16 GB memory of a single TPU v5e chip, so data parallelism is optimal to maximize training speed. Model B (70B parameters) requires over 140 GB VRAM just for weights at FP16, making it impossible to fit on a single 16 GB chip. Model B must use model parallelism to shard weights across chips."
+    },
+    {
+      "id": 27,
+      "topic_number": 5,
+      "topic": "Model Deployment, Endpoint Autoscaling, Custom Prediction Routines, and Compute Infrastructure",
+      "question_number": 6,
+      "question": "You have trained a custom PyTorch model to classify product images. The client application sends requests containing raw image bytes. You need to implement server-side logic to decode bytes, resize images, and normalize pixels before passing them to the model. You want to minimize latency and operational overhead. What should you do?",
+      "options": [
+        "Use Agent Platform custom prediction routines (CPR) to define a custom Predictor class that implements preprocess, predict, and postprocess methods. Deploy using the Agent Platform SDK.",
+        "Deploy using a pre-built PyTorch container and implement image decoding in a Cloud Run service.",
+        "Convert PyTorch model to ONNX format and host on Triton Inference Server.",
+        "Build a custom container using FastAPI from scratch and deploy to Artifact Registry."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: CPR abstracts container creation, health endpoints, and HTTP routing while providing a structured Python class interface (preprocess, predict, postprocess). It reduces operational overhead compared to writing custom FastAPI web servers or proxy microservices. Detailed Topic Explanation Constructing production-grade machine learning systems requires automated orchestration pipelines to manage training, validation, deployment, and continuous retraining (CT): Orchestration Frameworks: Vertex AI Pipelines: Uses the Kubeflow Pipelines (KFP) SDK. It provides serverless execution of containerized ML steps with built-in artifact tracking, execution caching, and lineage management. Cloud Composer (Managed Apache Airflow): Preferred when orchestrating multi-cloud workflows, complex hybrid environments, or non-ML platform dependencies (e.g., executing on-premises shell scripts alongside cloud triggers). Triggers & Event-Driven Automation: Daily / Scheduled Retraining: Cloud Scheduler calls a lightweight trigger function (e.g., Cloud Run or Cloud Functions) to submit a compiled Vertex AI Pipeline JSON definition on a cron schedule. Event-Based / Data Ingestion Triggers: Cloud Storage bucket triggers pass newly uploaded data notifications directly to Cloud Run functions to start pipeline runs. Code-Based Triggers (CI/CD): Cloud Build monitors code repositories (e.g., GitHub). When pipeline code or Docker container logic changes on the main branch, Cloud Build builds new container images, pushes them to Artifact Registry, compiles the new pipeline specification, and uploads it to Cloud Storage. Model Registry Aliases for Zero-Downtime Deployment: Batch inference pipelines and production serving applications reference model aliases (e.g., production) rather than hardcoded model version IDs. Promoting a new, retrained model simply involves reassigning the production alias to the new version in Model Registry, instantly routing downstream batch jobs without application code modifications. Real-Life Example A logistics company maintains a daily freight demand model. CI/CD Pipeline: A data scientist updates the training component logic and merges code to Git. Cloud Build automatically triggers, builds a new Docker image containing updated dependencies, pushes it to Artifact Registry, compiles the pipeline into JSON, and saves it in Cloud Storage. Scheduled Execution: Every night at 2:00 AM, Cloud Scheduler triggers a Cloud Run service that submits the latest compiled pipeline JSON to Vertex AI Pipelines. Safe Promotion: The pipeline validates the new model's performance. If validation metrics pass, the pipeline updates the production alias in Vertex AI Model Registry. How to Work With Vertex AI Pipelines & Caching Step 1: Define a Kubeflow Pipeline with Caching Enabled Python from kfp import dsl from google.cloud import aiplatform @dsl.component(base_image=\"python:3.10\") def preprocess_op(input_path: str) -> str: # Heavy data preprocessing logic output_path = input_path.replace(\".csv\", \"_processed.csv\") return output_path @dsl.component(base_image=\"python:3.10\") def train_op(processed_data_path: str) -> str: # Model training logic return \"gs://my-bucket/models/model.pkl\" @dsl.pipeline( name=\"retraining-pipeline\", pipeline_root=\"gs://my-bucket/pipeline_root\" ) def my_pipeline(data_uri: str): # Enable caching: runs only if input parameters or logic changed prep_task = preprocess_op(input_path=data_uri) prep_task.set_caching_options(enable_caching=True) train_task = train_op(processed_data_path=prep_task.output) # Compile pipeline to JSON from kfp import compiler compiler.Compiler().compile( pipeline_func=my_pipeline, package_path=\"pipeline_spec.json\" ) Step 2: Submit Job via Cloud Run / Python SDK Python job = aiplatform.PipelineJob( display_name=\"scheduled-retrain-run\", template_path=\"pipeline_spec.json\", parameter_values={\"data_uri\": \"gs://my-bucket/data.csv\"}, enable_caching=True ) job.submit() Categorized Exam Questions"
+    },
+    {
+      "id": 28,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 1,
+      "question": "You are creating an ML pipeline for daily processing, model training, and model deployment that uses different components for each. You have developed code for each task. You expect approximately 1000 new files per day, and you configure the first stage of the pipeline to check the number of new files present in a Cloud Storage bucket at the end of each day. You now need to create an orchestration layer to run these tasks. You also want to minimize overhead costs. What should you do?",
+      "options": [
+        "Deploy a directed acyclic graph (DAG) in Managed Service for Apache Airflow that is scheduled to run the pipeline daily.",
+        "Create a pipeline in Agent Platform Pipelines. Create a Cloud Run function that uses a Cloud Storage trigger and runs the pipeline each time a new file is added to the bucket.",
+        "Create a Cloud Run function that uses a Cloud Storage trigger to trigger each time a new file is added to the bucket. Deploy a DAG in Managed Service for Apache Airflow to trigger the pipeline execution.",
+        "Create a pipeline in Agent Platform Pipelines. Use the Cloud Scheduler API to run the pipeline daily."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: The requirement calls for evaluating accumulated files at the end of each day (batch), rather than running 1,000 separate pipeline executions per file update. Using Cloud Scheduler to invoke a daily Vertex AI Pipeline run is serverless, low-cost, and avoids paying for continuously running Apache Airflow (Cloud Composer) infrastructure."
+    },
+    {
+      "id": 29,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 2,
+      "question": "You maintain a freight-demand forecasting model at a logistics company. The training workflow is orchestrated using container components in Agent Platform Pipelines. Currently, a Cloud Scheduler job triggers a Cloud Run function that submits a pipeline run using only a compiled JSON definition stored in Cloud Storage. A data scientist has updated the training component's Python logic, which requires a new container image to be installed. This code is merged to the main branch of your repository. You need to configure a Cloud Build trigger to automate this. How should you implement the process to ensure that the next scheduled run uses the updated logic?",
+      "options": [
+        "Build and push a new Docker container image for training to Artifact Registry. Use the KFP SDK to compile the pipeline into a JSON file. Upload the compiled pipeline definition to the designated Cloud Storage bucket location.",
+        "Use the KFP SDK to compile the pipeline into a JSON file. Upload this file to Cloud Storage. Update the Cloud Run function environment variables.",
+        "Build and push a new Docker container image for the modified component to Artifact Registry. Use Cloud Build to create a new Model Registry entry.",
+        "Build and push a new Docker container image for training to Artifact Registry. Create a new Model Registry entry for the updated model version."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: To update a scheduled Vertex AI Pipeline that runs off Cloud Storage, CI/CD must rebuild the modified component container images, compile the new KFP pipeline code into an updated JSON definition referencing those new container URIs, and overwrite the compiled JSON in Cloud Storage."
+    },
+    {
+      "id": 30,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 3,
+      "question": "Your team manually performs a monthly model retraining process that is slow and error-prone. You need to automate this workflow by building a solution that automatically checks the schema of the input data and only deploys the new model if its evaluation metrics are better than the current production model. You want to minimize the complexity of the solution. How should you build this solution?",
+      "options": [
+        "Build a workflow in Agent Platform Pipelines. Use a data validation component to check the input data schema. Add a robust component that conditionally deploys the new model to an Agent Platform endpoint if its evaluation metrics are better than the current production model.",
+        "Schedule a recurring job in Agent Platform Serverless Training. Compare performance manually in an Agent Platform Workbench notebook.",
+        "Build a workflow in Agent Platform Pipelines. Use Managed Service for Apache Spark. Create a custom component to compare metrics.",
+        "Create a pipeline in Managed Service for Apache Airflow using BranchPythonOperator."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Vertex AI Pipelines natively handles step-by-step workflow orchestration, artifact schema validation, and conditional execution using DSL logic (dsl.Condition). This satisfies automated validation and conditional deployment with minimal architectural complexity compared to maintaining Spark or Airflow clusters."
+    },
+    {
+      "id": 31,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 4,
+      "question": "You work at a healthcare company with strict security policies. Your Google Cloud organization uses a Virtual Private Cloud (VPC) Service Control perimeter to mitigate data exfiltration from Gemini Enterprise Agent Platform. You are creating a training pipeline using Agent Platform Pipelines with the Kubeflow Pipelines (KFP) SDK. During execution, the pipeline fails on a step that installs a public package using the pip install command. You need to resolve this failure while adhering to security policies and best practices. What should you do?",
+      "options": [
+        "Create a requirements.txt file with the necessary packages, upload it to Cloud Storage inside the perimeter, and run pip install -r.",
+        "Add the public package in the packages_to_install parameter in the pipeline component decorator to run it from the PyPI repository.",
+        "Increase the job's network timeout setting within the pipeline component configuration.",
+        "Build a custom container image with all required libraries pre-installed, and push the container image to Artifact Registry."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: VPC Service Controls block public internet egress (including PyPI repository access) to prevent data exfiltration. Pre-building custom container images containing all required dependencies and storing them inside a private Artifact Registry inside the network perimeter complies strictly with security boundaries while eliminating runtime pip install internet requirements."
+    },
+    {
+      "id": 32,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 5,
+      "question": "You are orchestrating a retraining pipeline for a custom tabular model using Agent Platform Pipelines. You need to ensure that the newly ingested data matches the expected schema and that its feature distribution has not drifted significantly from the baseline dataset used in the previous model version. You need to ensure that the training component executes only if these conditions are met. What should you do?",
+      "options": [
+        "Configure a Model Monitoring job to analyze the training dataset for feature skew and data drift.",
+        "Add a pipeline component that generates statistics for the new dataset and compares them to the baseline dataset. Use a conditional step to proceed to the training component only if no anomalies are detected.",
+        "Update training application code to calculate feature distributions in Python and exit upon exception.",
+        "Ingest new data into Agent Platform Feature Store and rely on automatic rejection."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Performing data validation and drift checking as explicit components within the pipeline allows control via conditional branches (dsl.Condition). If validation checks pass, the pipeline proceeds to model training; if anomalies are detected, the training component is skipped, saving compute resources."
+    },
+    {
+      "id": 33,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 6,
+      "question": "You manage a custom churn prediction model in Model Registry. Your production application currently submits batch prediction jobs using this model by referencing a custom model alias named production. You have trained a new version of the model that has higher accuracy. You need to ensure that the application uses the new model version for the next batch prediction job without modifying the application code or configuration. What should you do?",
+      "options": [
+        "Overwrite the production model's artifact files in Cloud Storage with the new model's artifacts.",
+        "Update the Agent Platform endpoint associated with the production model to route 100% of traffic to the new model version.",
+        "Configure a Cloud Build trigger to automatically update the model path in the batch prediction job definition.",
+        "Move the production model alias from the old model version to the new model version."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Model Registry aliases serve as dynamic pointers. By reassigning the production alias to point to the newly registered model version ID, any downstream batch prediction job configured to call models/churn_model@production automatically picks up the new model version without updating code or configuration files."
+    },
+    {
+      "id": 34,
+      "topic_number": 6,
+      "topic": "MLOps Orchestration, CI/CD, Pipelines, and Retraining Workflows",
+      "question_number": 7,
+      "question": "You are developing a machine learning pipeline using the Kubeflow Pipelines (KFP) SDK that will run on Agent Platform Pipelines. The pipeline includes a preprocessing component that takes two hours to transform a large dataset. You are currently iterating on the code for the subsequent model_training component and need to re-submit the pipeline frequently for testing. You need to ensure that the preprocessing component only re-runs if its inputs or parameters have changed. You want to minimize effort, costs, and total execution time. What should you do?",
+      "options": [
+        "Add a dsl.Condition step to the pipeline that checks if the preprocessing step has executed in the last hour.",
+        "Ensure that execution caching is enabled for the preprocessing component by including the set_caching_options(enable_caching=True) method.",
+        "Configure the pipeline to write the preprocessed data to a persistent volume claim (PVC).",
+        "Track run lineage using Agent Platform Experiments."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Vertex AI Pipelines features built-in execution caching. When caching is enabled (enable_caching=True), the execution engine checks if a previous component execution exists with the exact same code, inputs, and parameters. If found, it skips execution and reuses the cached output artifacts, saving execution time and compute costs. Detailed Topic Explanation When building enterprise ML applications, custom model development isn't always optimal or cost-effective. Google Cloud provides pre-trained, managed ML services for domain-specific tasks: Document AI: Purpose-built for extracting structured data from unstructured documents (e.g., invoices, receipts, tax forms, procurement contracts). It uses Specialized Processors (like the Invoice Processor) that combine OCR, spatial layout analysis, and NLP to output structured JSON entities automatically. Vision API & Cloud Natural Language API: Vision API: Ideal for general optical character recognition (TEXT_DETECTION), explicit content detection (SAFE_SEARCH_DETECTION), object detection, and image labeling. Natural Language API: Optimized for entity recognition, sentiment analysis, and syntax parsing on raw unstructured text. Vertex AI Search (Agent Search) & Layout Parser: Used when you need semantic search or RAG across unstructured enterprise documents (PDFs, docs) with minimal manual parsing, vector indexing, or pipeline maintenance. Real-Life Example A global accounts payable team receives 10,000 PDF invoices daily from hundreds of vendors, each with different layouts. Bad Approach: Writing complex Regex scripts over Cloud Vision OCR outputs or training a custom Named Entity Recognition (NER) model from scratch. Best Approach: Routing incoming PDFs to Document AI's Invoice Processor. It accurately extracts key fields—such as invoice_id, total_amount, line_items, and due_date—regardless of template layout changes, outputting structured data directly into BigQuery. How to Work With Document AI (Python SDK) Python from google.cloud import documentai_v1 as documentai def process_invoice(project_id: str, location: str, processor_id: str, file_path: str): client = documentai.DocumentProcessorServiceClient() name = client.processor_path(project_id, location, processor_id) with open(file_path, \"rb\") as image: image_content = image.read() raw_document = documentai.RawDocument(content=image_content, mime_type=\"application/pdf\") request = documentai.ProcessRequest(name=name, raw_document=raw_document) result = client.process_document(request=request) document = result.document # Print extracted entities for entity in document.entities: print(f\"Entity: {entity.type_} -> {entity.mention_text}\") Categorized Exam Questions"
+    },
+    {
+      "id": 35,
+      "topic_number": 7,
+      "topic": "Specialized Managed ML Services (Document AI, Vision API, Natural Language API, Agent Search)",
+      "question_number": 1,
+      "question": "You are building an application that extracts information from invoices and receipts. You want to implement the application with minimal custom code and training. What should you do?",
+      "options": [
+        "Use the Natural Language API to classify and extract information from the invoices and receipts.",
+        "Use the Cloud Vision API with TEXT_DETECTION type to extract text from the invoices and receipts, and use a Natural Language Processing (NLP) model to parse the extracted text.",
+        "Use Agent Search with the prebuilt Layout Parser model to extract information from the invoices and receipts.",
+        "Use the Cloud Document AI API to extract information from the invoices and receipts."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Cloud Document AI provides domain-specific pre-trained processors (such as the Invoice/Receipt Processor) that extract structured key-value entities out-of-the-box. This satisfies the requirement of minimal custom code and zero model training compared to combining Vision OCR and NLP parsing."
+    },
+    {
+      "id": 36,
+      "topic_number": 7,
+      "topic": "Specialized Managed ML Services (Document AI, Vision API, Natural Language API, Agent Search)",
+      "question_number": 2,
+      "question": "You are an AI architect at a popular photo sharing social media platform. Your organization's content moderation team manually scans every image uploaded by users and removes explicit images manually. You want to implement an AI service to automatically prevent users from uploading explicit images / route for review. What should you do?",
+      "options": [
+        "Create a dataset using manually labeled images, and import the dataset to an Agent Platform endpoint. Integrate the export with the image upload process to identify and flag inappropriate uploads.",
+        "Train an image clustering model in an Agent Platform Workbench instance. Deploy the model to an Agent Platform endpoint.",
+        "Send a copy of every newly-uploaded image to a Cloud Storage bucket. Configure a Cloud Storage trigger to a Cloud Run function that triggers the Cloud Vision API to detect explicit content each time a new image is uploaded. Record the classification in the database and route to the content moderation team for review.",
+        "Develop a custom model in an Agent Platform Workbench instance. Train the model on a labeled dataset. Deploy the model to an Agent Platform endpoint."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Cloud Vision API includes a pre-trained SAFE_SEARCH_DETECTION feature capable of detecting adult, violent, or explicit imagery instantly. Utilizing an event-driven Cloud Function/Run triggered by Cloud Storage uploads leverages fully managed serverless infrastructure without needing to collect datasets or train/deploy custom image classification models."
+    },
+    {
+      "id": 37,
+      "topic_number": 7,
+      "topic": "Specialized Managed ML Services (Document AI, Vision API, Natural Language API, Agent Search)",
+      "question_number": 3,
+      "question": "Your company manages an e-commerce platform and has a large dataset of customer reviews. Each review has a star rating / text label. You need to quickly prototype a sentiment analysis model that accurately predicts the sentiment scores of new customer reviews while minimizing time and cost. What should you do?",
+      "options": [
+        "Use the Natural Language API for real-time sentiment analysis.",
+        "Use Agent Platform AutoML to train a multi-class classification model that predicts sentiment labels based on the training data.",
+        "Train a sentiment analysis model by using a BERT-based model and fine-tune the model by using your own custom dataset customer reviews.",
+        "Use the Agent Platform Text Embeddings API to vectorize the text, and train a regression model to predict sentiment scores."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: The Cloud Natural Language API offers pre-trained, ready-to-use sentiment analysis that outputs sentiment scores and magnitude immediately via REST calls. For rapid prototyping with zero time spent training or setting up endpoints, it is the most cost- and time-effective option."
+    },
+    {
+      "id": 38,
+      "topic_number": 7,
+      "topic": "Specialized Managed ML Services (Document AI, Vision API, Natural Language API, Agent Search)",
+      "question_number": 4,
+      "question": "You work for a logistics company that receives thousands of PDF invoices each day from various freight carriers. The invoices are scanned and saved as images in a Cloud Storage bucket. Each invoice contains important information such as invoice number, invoice date, supplier name, and invoice amount. However, the layout and format varies significantly from carrier to carrier. You need to build a pipeline that extracts the fields from all incoming invoices and loads the structured data into a BigQuery table for analysis. You want the solution to be scalable while minimizing manual data entry and custom parsing logic. What should you do?",
+      "options": [
+        "Configure a processor using Document AI's pre-trained invoice processor, and send each document to its endpoint. Extract the structured entities from the processor's JSON output.",
+        "Schedule a notebook in an Agent Platform Workbench instance to periodically train a custom named entity recognition (NER) model on a labeled dataset of invoice documents.",
+        "Create a Cloud Run service that uses the Gemini Pro model to read documents to identify and return the required values in JSON format.",
+        "Use the Cloud Vision API's OCR feature on a Compute Engine VM to extract all raw text from each document. Write a Python script with regular expressions to search for keywords and parse the extracted text."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Document AI's specialized Invoice Processor handles layout variations automatically across unstructured PDF files and extracts key-value fields natively. This completely eliminates custom regex code or manual training of custom NER models. Mitigation, and Feature Attributions Detailed Topic Explanation Deploying ML models in regulated industries (finance, healthcare, hiring) requires high interpretability and adherence to Google's Responsible AI principles: Explainable AI (XAI) Methods: Linear/Logistic Regression Coefficients: Most interpretable for simple tabular models. Directly quantifies how feature changes impact outputs. Sampled Shapley (SHAP): Optimal for tabular ensemble models (like Boosted Trees or XGBoost). Based on cooperative game theory, it assigns fair feature attributions. Integrated Gradients: Best for deep neural networks (DNNs), computer vision, and continuous differentiable models. It calculates gradients along an interpolation path from a baseline to the input instance. Bias Auditing & Mitigation: If a model demonstrates demographic bias during testing, post-hoc threshold tweaks or complex architectures are insufficient. The root fix under Responsible AI guidelines is to audit training data for underrepresented groups and augment/rebalance data before retraining. Classification Probability Thresholds (Precision vs. Recall): Lowering the Decision Threshold (e.g., from 0.5 to 0.2): Increases Recall (catches more positive cases, e.g., credit card fraud), but increases false positives. Raising the Decision Threshold (e.g., from 0.5 to 0.8): Increases Precision (fewer false alarms), but misses subtle fraud cases. Real-Life Example A bank's fraud detection model currently misclassifies suspicious transactions as legitimate (false negatives). Missing a fraudulent transaction costs the bank thousands of dollars, whereas a false alarm merely requires a quick SMS confirmation. Solution: Decrease the classification probability threshold (e.g., to 0.15). The model becomes more sensitive, drastically catching more fraudulent cases (higher Recall) and reducing false negatives. Categorized Exam Questions"
+    },
+    {
+      "id": 39,
+      "topic_number": 8,
+      "topic": "Model Interpretability, Responsible AI, Bias",
+      "question_number": 1,
+      "question": "You are developing an ML model on Gemini Enterprise Agent Platform that needs to meet specific interpretability requirements for regulatory compliance. You want to use a combination of model architectures and modeling techniques to maximize accuracy and interpretability. How should you create the model?",
+      "options": [
+        "Use a boosted decision tree-based model architecture, and use sampled Shapley (SHAP) values for interpretability.",
+        "Use a recurrent neural network (RNN)-based deep learning model architecture, and use integrated gradients for interpretability.",
+        "Use a long short-term memory (LSTM)-based model architecture, and use local interpretable model-agnostic explanations (LIME) for interpretability.",
+        "Use a convolutional neural network (CNN)-based deep learning model architecture, and use local interpretable model-agnostic explanations (LIME) for interpretability."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Boosted decision trees achieve state-of-the-art accuracy on structured/tabular enterprise data. Pairing boosted trees with Sampled Shapley (SHAP) values offers mathematically rigorous, exact feature attribution explanations suitable for regulatory requirements."
+    },
+    {
+      "id": 40,
+      "topic_number": 8,
+      "topic": "Model Interpretability, Responsible AI, Bias",
+      "question_number": 2,
+      "question": "Your company's business stakeholders want to understand the factors driving customer churn to inform their business strategy. You need to build a customer churn prediction model that prioritizes simple interpretability of your model's results. You need to choose the ML framework and modeling technique that will explain which features led to the prediction. What should you do?",
+      "options": [
+        "Build a deep neural network (DNN) model, and use sampled Shapley (SHAP) values for feature importance analysis.",
+        "Build a long short-term memory (LSTM) network, and use attention mechanisms for interpretability.",
+        "Build a logistic regression model in scikit-learn, and interpret the model's output coefficients to understand feature impact.",
+        "Build a linear regression model in scikit-learn, and interpret the model's standardized coefficients to understand feature impact."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: For binary classification tasks like churn prediction where simple interpretability is the single top priority for business stakeholders, logistic regression provides direct, transparent feature impact analysis via output log-odds coefficients. (Linear regression is for continuous target variables, not binary churn)."
+    },
+    {
+      "id": 41,
+      "topic_number": 8,
+      "topic": "Model Interpretability, Responsible AI, Bias",
+      "question_number": 3,
+      "question": "You are developing a natural language processing (NLP) model that analyzes customer feedback to identify positive, negative, and neutral experiences. During the testing phase, you notice that the model demonstrates a significant bias against certain demographic groups, leading to skewed analysis results. You want to address this issue following Google's responsible AI practices. What should you do?",
+      "options": [
+        "Audit the training dataset to identify underrepresented groups and augment the dataset with additional samples before retraining the model.",
+        "Use Agent Platform's model evaluation service to assess bias in the model's predictions, and use postprocessing to adjust outputs for identified demographic discrepancies.",
+        "Implement a more complex model architecture that can capture nuanced patterns in language to reduce bias.",
+        "Use explainable AI tooling to generate explanations and systematically adjust the predictions to address identified biases."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Google's Responsible AI practices state that training data quality and representation are the primary causes of model bias. Auditing datasets to locate underrepresented demographic groups and augmenting training samples fixes the foundational root cause before model retraining."
+    },
+    {
+      "id": 42,
+      "topic_number": 8,
+      "topic": "Model Interpretability, Responsible AI, Bias",
+      "question_number": 4,
+      "question": "You are developing a model to detect fraudulent credit card transactions. You need to prioritize detection, because missing even one fraudulent transaction could severely impact the credit card holder. You used Agent Platform AutoML to train a model on users profile information and credit card transaction data. After training the initial model, you notice that the model is failing to detect many fraudulent transactions. How should you increase the number of fraudulent transactions that are detected?",
+      "options": [
+        "Add more non-fraudulent examples to the training set.",
+        "Reduce the maximum number of node hours for training.",
+        "Increase the probability threshold to classify a fraudulent transaction.",
+        "Decrease the probability threshold to classify a fraudulent transaction."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Decreasing the decision threshold (e.g., from 0.50 to 0.15) makes the classifier more sensitive. Lowering the bar required to flag an item as fraud increases Recall, ensuring significantly fewer fraudulent transactions escape undetected (fewer false negatives). Detailed Topic Explanation Data science teams require secure, reproducible, and collaborative environments for prototyping and experimentation: Vertex AI Workbench vs. Colab Enterprise: Colab Enterprise: Fully managed, serverless collaborative notebook environment tightly integrated with Vertex AI SDK, Model Garden, and BigQuery. Best for teams needing rapid collaboration without managing underlying infrastructure or VM machine specifications. Workbench Instances (Managed/User-Managed): Customizable VM-based Jupyter instances. Ideal when team members require custom Docker base images, persistent hardware access, or granular control over environment settings. Version Control & Notebook Governance: Storing notebooks in Git repositories (e.g., GitHub or GitLab) with branch-based feature isolation and Pull Request (PR) code reviews is the enterprise standard for reproducibility and team tracking. Storing notebooks in shared Cloud Storage buckets or sharing a single VM leads to code conflicts and untracked changes. Vertex AI Experiments & TensorBoard: Vertex AI Experiments: Tracks parameters, metrics, inputs, and output artifacts across pipeline runs or notebook iterations. Vertex AI TensorBoard: Managed service providing rich visual analytics for neural network internals, loss curves, model graphs, and profiling. Real-Life Example A team of 5 ML engineers collaborates on a customer churn model. Anti-Pattern: Everyone logs into a single Workbench VM instance or uploads churn_v1.ipynb, churn_v2_final.ipynb to a shared Cloud Storage bucket. Best Practice Pattern: The team uses Colab Enterprise for joint exploratory work or individual Workbench instances tied to a centralized Git repository. Each developer creates a Git feature branch for their experiment and submits code via Pull Requests. Training iterations, metrics (AUC, loss), and model artifacts are automatically logged into Vertex AI Experiments for objective comparison. Categorized Exam Questions"
+    },
+    {
+      "id": 43,
+      "topic_number": 9,
+      "topic": "Notebook Environments, Collaborative Experiment Tracking, and Experimentation Workflow",
+      "question_number": 1,
+      "question": "Your data science team is running numerous experiments for a churn model using Agent Platform Workbench. You need to establish a workflow that ensures reproducibility of experiments, supports effective collaboration, and tracks each team member's work. What should you do?",
+      "options": [
+        "Use Agent Platform Experiments to track each notebook run. Instruct team members to clone a primary notebook for each new experiment.",
+        "Store the notebooks in a version control repository. Instruct team members to create a new branch for each experiment and merge code changes by using pull requests.",
+        "Instruct team members to use a single, shared Agent Platform Workbench instance, and use separate conda environments to manage their library dependencies.",
+        "Create a shared bucket in Cloud Storage to store the notebooks. Instruct the team to create their own personal folder and append a version number as a suffix to each notebook's filename."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Git version control with dedicated branches and Pull Requests (PRs) is the software engineering standard for collaboration, code auditing, tracking, and reproducibility. Shared Cloud Storage buckets or single shared instances cause environment conflicts and lack historical lineage."
+    },
+    {
+      "id": 44,
+      "topic_number": 9,
+      "topic": "Notebook Environments, Collaborative Experiment Tracking, and Experimentation Workflow",
+      "question_number": 2,
+      "question": "Your team is prototyping a novel image captioning application. The team plans to test a variety of models, including a Google foundation model and a popular open-weight model, and wants to quickly collaborate with the highest quality and least latency. All prototyping work must be conducted in a secure collaborative environment. You need to recommend the most efficient approach for the team to access and compare these models. What should you do?",
+      "options": [
+        "Create a Compute Engine VM instance with a Deep Learning VM image. Install the necessary SDKs and open-source libraries. Download both models for in-memory comparison.",
+        "Create an Agent Platform Colab Enterprise notebook. Access the foundation model and the open-weight model for comparison by using Model Garden and Hugging Face integration via Model Garden SDK.",
+        "Create an Agent Platform Workbench instance. Install the necessary open-source libraries to run the models in the notebook VM. Download the open-weight model from an external repository for an in-memory comparison.",
+        "Create an Agent Platform Pipelines workflow that includes two separate custom training jobs. Use the pipeline to run a comparison test."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Vertex AI Colab Enterprise offers zero-setup managed collaboration with native SDK integration for both Google foundation models and open-weight models in Model Garden (including Hugging Face models). This satisfies rapid collaboration without managing manual VM setups or pipeline orchestration overhead."
+    },
+    {
+      "id": 45,
+      "topic_number": 9,
+      "topic": "Notebook Environments, Collaborative Experiment Tracking, and Experimentation Workflow",
+      "question_number": 3,
+      "question": "You are an ML researcher and are evaluating multiple deep learning-based model architectures and hyperparameter configurations. You want to implement a robust solution to track the progress of each model iteration, visualize key metrics, gain insights into model internals, and optimize training performance. You want your solution to have the most efficient and powerful approach to compare the models and have the strongest visualization abilities. How should you build this solution?",
+      "options": [
+        "Use Agent Platform TensorBoard for in-depth visualization and analysis, and use BigQuery to experiment tracking and analysis.",
+        "Use Agent Platform TensorBoard for visualizing training progress and model performance and use Agent Platform TensorBoard to store and manage experiment data for analysis and reproducibility.",
+        "Use Agent Platform Experiments for tracking iterations and comparison, and use Agent Platform TensorBoard for analysis of fine training metrics and model architecture.",
+        "Use Agent Platform Experiments for tracking iterations and comparison, and use BigQuery and Looker Studio for visualization and analysis of fine training metrics and model architecture."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Vertex AI Experiments is specifically built to log and compare discrete experiment runs, parameters, and high-level evaluation metrics. Vertex AI TensorBoard provides deep visual profiling of computational graphs, epoch-by-epoch loss/accuracy metrics, and internal neural layer activations. Combining both yields the optimal framework."
+    },
+    {
+      "id": 46,
+      "topic_number": 9,
+      "topic": "Notebook Environments, Collaborative Experiment Tracking, and Experimentation Workflow",
+      "question_number": 4,
+      "question": "You are part of a team of ML engineers building a new churn prediction model using PyTorch. Your team's raw data is stored in BigQuery. For the initial prototyping phase, your team needs a collaborative, cloud-based environment that provides GPU access, seamless authentication to BigQuery without manual service account keys, and pre-configured ML frameworks. You need to choose the most secure solution with the least setup overhead. What should you do?",
+      "options": [
+        "Package the PyTorch model code in a Docker container, and upload it to Artifact Registry.",
+        "Create Agent Platform Workbench instances for your team members. Select instance types with attached GPUs and the pre-installed PyTorch kernel. Use the BigQuery client library to access the data, and use the instances' managed identity for authentication.",
+        "Instruct team members to use the free version of Agent Platform Colab Enterprise.",
+        "Configure a JupyterHub server on a cluster of Compute Engine instances."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Vertex AI Workbench instances come pre-packaged with PyTorch, GPU drivers, and Google Cloud SDKs. Using the Workbench instance service account (managed identity) provides IAM-based access to BigQuery without exporting or storing service account JSON keys locally. Detailed Topic Explanation Training modern large language models, computer vision networks, and diffusion models requires selecting the appropriate hardware acceleration and memory optimization techniques: NVIDIA GPUs vs. Google Cloud TPUs: GPUs (e.g., A100, B200, T4): General-purpose accelerators supported across all frameworks (PyTorch, TensorFlow, JAX). Preferred for custom open-source libraries, CUDA dependencies, and standard ML models. TPUs (v4, v5e, v5p): Google-custom ASIC hardware built specifically for matrix multiplication at extreme scale. Ideal for large foundation model pre-training/fine-tuning (JAX/TensorFlow/PyTorch) across pod slices. Precision and Quantization Techniques: Mixed Precision (bf16 / fp16): Uses 16-bit floating-point numbers for matrix math while preserving 32-bit (fp32) master weights. Drastically cuts memory footprint and doubles training throughput without loss of model accuracy. DataLoader Optimization (num_workers & pin_memory): When GPU memory utilization fluctuates (drops to 0% continuously while CPU utilization stays >90%), the GPU is data-starved waiting for the CPU to load and decode input batches. Increasing num_workers in PyTorch's DataLoader and enabling pin_memory=True resolves CPU input bottlenecks. Real-Life Example An ML engineer notices an NVIDIA A100 GPU running a custom PyTorch image training job has volatile GPU usage—it regularly spikes to 100% then drops to 0% for several seconds while CPU utilization remains pegged at 95%. Diagnosis: The GPU finishes computing matrix gradients in milliseconds, but must pause because the CPU main thread is stuck reading image files off storage and performing disk I/O synchronously. Fix: In the PyTorch script, set num_workers=8 (to use multi-threaded background data fetching) and pin_memory=True (to stage tensors in fast host RAM). GPU utilization stabilizes near 100%. Categorized Exam Questions"
+    },
+    {
+      "id": 47,
+      "topic_number": 10,
+      "topic": "Specialized Compute Hardware (TPUs vs GPUs) & Performance Optimization",
+      "question_number": 1,
+      "question": "You need to train a ControlNet model with Stable Diffusion XL for an image editing use case. You want to train this model as quickly as possible. Which hardware configuration should you choose to train your model?",
+      "options": [
+        "Configure one a2-ultragpu-1g instance with one NVIDIA A100 GPU with 80 GB of RAM. Use float32 precision during model training.",
+        "Configure one a2-ultragpu-1g instance with one NVIDIA A100 GPU with 80 GB of RAM. Use mixed / bfloat16 precision during model training.",
+        "Configure four n1-standard-16 instances, each with one NVIDIA T4 GPU with 16 GB of RAM. Use float32 precision during model training.",
+        "Configure four n1-standard-16 instances, each with one NVIDIA T4 GPU with 16 GB of RAM. Use float16 quantization during model training."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: An A100 GPU (80 GB) provides vastly superior Tensor Core memory bandwidth and compute performance compared to four older T4 GPUs. Enabling mixed precision (bfloat16) cuts memory consumption in half and accelerates matrix multiplication speed on A100 Tensor Cores."
+    },
+    {
+      "id": 48,
+      "topic_number": 10,
+      "topic": "Specialized Compute Hardware (TPUs vs GPUs) & Performance Optimization",
+      "question_number": 2,
+      "question": "You work for a financial company that has a large custom dataset with one trillion tokens. The dataset contains financial news, reports, and public datasets. You need to train a custom LLM from scratch using the open-source open language model (OLMo) framework. You want to maximize throughput. What should you do?",
+      "options": [
+        "Store the dataset in Filestore, and mount it as NFS. Run an Agent Platform custom training job on B200 GPUs.",
+        "Store the dataset in Cloud Storage, and create a GKE cluster using preemptible VMs with a4-highgpu-8g machines.",
+        "Buy a reservation for B200 GPUs. Use Managed Lustre to store the data, and use Cluster Toolkit to create a Slurm cluster with a4-highgpu-8g machines (using B200 GPUs). Schedule a PyTorch training job on this cluster.",
+        "Store the dataset in Filestore, and create a GKE cluster with a4-highgpu-8g machines."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Pre-training a 1-trillion token LLM requires massive parallel throughput across high-performance GPUs. Using Managed Lustre provides ultra-high-throughput parallel POSIX storage (preventing I/O bottlenecks during distributed training), while Cluster Toolkit with Slurm provides high-performance computing (HPC) cluster management across reserved NVIDIA GPUs."
+    },
+    {
+      "id": 49,
+      "topic_number": 10,
+      "topic": "Specialized Compute Hardware (TPUs vs GPUs) & Performance Optimization",
+      "question_number": 3,
+      "question": "You are training a ResNet-50 computer vision model on Gemini Enterprise Agent Platform using a custom PyTorch container. The training job is configured with an A2 accelerator-optimized machine type and one NVIDIA A100 GPU. During training, GPU utilization is volatile (frequently dropping to 0% for short intervals) while CPU utilization remains consistently above 90%. You want to maximize GPU utilization to reduce training time. What should you do?",
+      "options": [
+        "Update the DataLoader utility to increase the num_workers parameter and enable pin_memory.",
+        "Switch to a machine type with a higher number of GPUs, and implement the torch.nn.parallel.DistributedDataParallel strategy.",
+        "Increase the training batch size to saturate the GPU memory.",
+        "Enable automatic mixed precision (AMP) to speed up matrix multiplications."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Volatile GPU utilization combined with high CPU utilization indicates CPU data-loading bottlenecks. The PyTorch DataLoader defaults to a single worker process (num_workers=0), forcing the CPU to fetch and transform images sequentially. Increasing num_workers enables parallel multi-process data loading, and pin_memory=True speeds up host-to-GPU memory transfers. Pipelines) Detailed Topic Explanation Selecting the correct orchestration tool depends on security boundaries, execution environments, and system dependencies: Managed Service for Apache Airflow (Cloud Composer): The industry standard for complex, cross-platform workflows. It provides pre-built operators and sensors to manage hybrid cloud workloads, execute on-premises shell scripts (via SSH), trigger external third-party APIs, and coordinate Google Cloud services. Vertex AI Pipelines (KFP SDK): Specialized specifically for ML workflow orchestration (preprocessing, hyperparameter tuning, model training, evaluation, deployment). It tracks model artifacts, lineages, and caching natively. Cloud Workflows / Cloud Run Functions: Used for lightweight, event-driven HTTP orchestration or serverless triggers (e.g., reacting to a Cloud Storage file upload). Real-Life Example An enterprise ML architecture must execute three distinct steps: Trigger a legacy shell script on an on-premises server to extract proprietary sales data. Launch a training job in Vertex AI. Send validation metrics to a third-party monitoring API outside GCP. Solution: Cloud Composer (Apache Airflow) is the correct choice. Its extensive library of native operators and SSH sensors can easily coordinate tasks across hybrid on-premises systems, GCP APIs, and third-party SaaS platforms. Categorized Exam Questions"
+    },
+    {
+      "id": 50,
+      "topic_number": 11,
+      "topic": "Enterprise Orchestration Frameworks (Cloud Composer / Apache Airflow vs. Workflows vs. Vertex AI",
+      "question_number": 1,
+      "question": "You are an ML engineer at a retail company. You need to automate a recurring retraining workflow for a demand forecasting model. The workflow involves dependencies across hybrid environments and must execute the following sequential steps: Trigger a shell script on an on-premises server to extract legacy sales data and send it to a Cloud Storage bucket. Trigger a pipeline in Agent Platform Pipelines to train and validate the new model. Push the validation metrics to a third-party API. You need a fully managed orchestration service that provides native connectors to handle these cross-platform dependencies. You want to use the most stable, robust solution. What should you do?",
+      "options": [
+        "Use Agent Platform Pipelines to develop a custom container component for each workflow step. Use the Kubeflow Pipelines (KFP) SDK to define the execution order.",
+        "Use Cloud Scheduler to trigger a Cloud Run function that executes the on-premises script using SSH.",
+        "Use Managed Service for Apache Airflow to define a directed acyclic graph (DAG) in Python. Use Apache Airflow operators and sensors to orchestrate the workflow steps.",
+        "Use Workflows to define the orchestration logic in YAML. Use the gcp-gcs connector to trigger the on-premises shell script."
+      ],
+      "correct_answer": 3,
+      "explanation": "Technical Explanation: Apache Airflow (Cloud Composer) excels at orchestrating complex, hybrid, multi-system workflows using built-in operators (such as SSH operators for on-premises scripts, GCP operators for Vertex AI, and HTTP operators for third-party APIs). Vertex AI Pipelines is intended for cloud-native ML container steps rather than hybrid on-premises SSH control."
+    },
+    {
+      "id": 51,
+      "topic_number": 11,
+      "topic": "Enterprise Orchestration Frameworks (Cloud Composer / Apache Airflow vs. Workflows vs. Vertex AI",
+      "question_number": 2,
+      "question": "You work for a large online retailer. You are productionizing a demand forecasting model designed to predict future sales for inventory management. You need to retrain the model with fresh data every 30 days. The inventory planning team requires daily batch predictions for replenishment orders. You need to design a solution that generates daily predictions while minimizing resource costs. Which pipeline architecture should you implement?",
+      "options": [
+        "Schedule a pipeline in Agent Platform Pipelines that generates batch predictions daily. Include training as a conditional step that runs if it is day 30 of the cycle.",
+        "Implement a pipeline in Agent Platform Pipelines for training that runs every 30 days to update a versioned model on an Agent Platform endpoint. Configure a Cloud Run function to send the daily batch dataset to the endpoint.",
+        "Implement a pipeline in Agent Platform Pipelines with sequential steps for data preparation, model training, and batch prediction. Schedule the pipeline to run daily.",
+        "Implement two pipelines in Agent Platform Pipelines: a continuous training pipeline that runs every 30 days, and a daily batch prediction pipeline that runs the batch prediction job."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Separating the concerns into two independent, decoupled pipelines optimizes compute resource usage and operational costs. Heavy model training runs only once every 30 days, while a lightweight batch prediction pipeline runs daily to score new data using the latest versioned model. Detailed Topic Explanation When customizing Generative AI models for enterprise domains, picking the wrong adaptation strategy leads to hallucinations or unnecessary training costs: Grounding / Retrieval-Augmented Generation (RAG): Best when the model requires access to frequently updated, factual enterprise knowledge (e.g., policy manuals, product catalogues, customer history). It retrieves relevant chunks from a vector database and inserts them into the prompt. Supervised Fine-Tuning (SFT): Best when the model must learn a new output style, distinct behavior, or specialized syntax that foundational models consistently fail to generate (e.g., generating internal proprietary machine control code like \"MechScript\"). Fine-tuning updates the internal weights of the model. Real-Life Example An engineering firm uses a proprietary, internal-only machine language called MechScript. When engineers ask Gemini to answer factual questions about MechScript using RAG, the model locates the manual correctly. However, when asked to write MechScript code, Gemini hallucinates Python syntax because foundational LLMs were never trained on MechScript's unique grammar. Solution: Perform Supervised Fine-Tuning (SFT) using a dataset of valid MechScript code examples so the model learns the underlying syntax structure. Categorized Exam Questions"
+    },
+    {
+      "id": 52,
+      "topic_number": 12,
+      "topic": "GenAI Adaptation - RAG vs. Supervised Fine-Tuning (SFT) & Prompt Engineering",
+      "question_number": 1,
+      "question": "You work at a manufacturing company. You are building an assistant to help engineers write scripts for a proprietary, legacy machine control language called \"MechScript.\" MechScript is highly specialized, uses unique syntax not found in public datasets, and is strictly internal. You built the base Gemini model using Agent Platform RAG Engine and grounded the model with the reference manual. The model correctly answers questions about the language, but it consistently fails to generate syntactically correct code snippets, often hallucinating Python-like syntax instead. What should you do?",
+      "options": [
+        "Use the Agent Platform supervised fine-tuning (SFT) service with a dataset of valid MechScript examples.",
+        "Increase the number of retrieved chunks in the RAG Engine call.",
+        "Copy the MechScript manual into the system prompt using Gemini's context window.",
+        "Increase the temperature parameter in the Gemini API call."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: RAG supplies external factual context, but SFT is required to teach a model custom output syntax, grammar, and structural formatting rules when public training data lacks examples of the proprietary language."
+    },
+    {
+      "id": 53,
+      "topic_number": 12,
+      "topic": "GenAI Adaptation - RAG vs. Supervised Fine-Tuning (SFT) & Prompt Engineering",
+      "question_number": 2,
+      "question": "You deployed a conversational application that uses Gemini. You recently collected thousands of rows of user feedback about the verbosity and accuracy of the model's responses. The feedback indicated that the responses are factually correct but users want different levels of verbosity depending on the type of question. You need to adjust the model to return responses that are more consistent with users' expectations. You want to use a scalable solution and minimize application maintenance. What should you do?",
+      "options": [
+        "Ask users to provide examples of responses with the appropriate verbosity as a list of question and answer pairs. Use this dataset to perform supervised fine-tuning (SFT) in Agent Platform. Re-evaluate the verbosity of responses with the tuned version.",
+        "Ask users to indicate all scenarios where they expect concise responses versus verbose responses. Modify the application's prompt to include these scenarios.",
+        "Experiment with other models in Model Garden. Perform A/B testing by setting each model as your application's default model.",
+        "Implement a keyword-based routing layer."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: Supervised Fine-Tuning (SFT) using a dataset of curated target question-answer pairs is the cleanest, most scalable way to permanently adjust an LLM's response style, tone, and verbosity without maintaining complex prompt routing logic or huge multi-shot context windows. Detailed Topic Explanation Google Kubernetes Engine (GKE) vs. Vertex AI Endpoints for Model Serving: Vertex AI Endpoints: Fully managed, serverless model hosting. Ideal when you want zero infrastructure maintenance, automatic scaling down to zero, and native integration with Model Registry, Model Monitoring, and CPR. GKE (Google Kubernetes Engine): Preferred when teams require full infrastructure control, specialized custom containers, non-HTTP network protocols, custom C++ dependencies, complex multi-model sidecar pods, or portability standards across multi-cloud environments. Chronological / Time-Series Data Splitting: When training models on time-dependent data (e.g., regional sales timestamps), never use random splits. Randomly splitting time-series data leaks future context into the past training data. Datasets must be split chronologically (e.g., train on years 1–4, validate on year 5). Categorized Exam Questions"
+    },
+    {
+      "id": 54,
+      "topic_number": 13,
+      "topic": "Advanced Infrastructure & Hosting Options (GKE vs. Vertex AI Endpoints) and Data Splitting",
+      "question_number": 1,
+      "question": "You are a Lead ML architect at a small company that is migrating from on-premises to Google Cloud. Your company has limited resources and expertise in cloud infrastructure. You want to serve your models from Google Cloud as a scalable, reliable, and cost-effective solution that requires no additional infrastructure resources. What should you do?",
+      "options": [
+        "Create a Cloud Run function to deploy your models as serverless functions.",
+        "Deploy your models on Agent Platform Endpoints.",
+        "Configure Compute Engine VMs to host your models.",
+        "Create a managed cluster on Google Kubernetes Engine (GKE) and deploy your models as containers."
+      ],
+      "correct_answer": 2,
+      "explanation": "Technical Explanation: Vertex AI Endpoints provides fully managed model hosting that automatically handles autoscaling, health checks, and load balancing out of the box. For a team with limited cloud infrastructure expertise, it eliminates the operational burden of managing VM clusters or GKE Kubernetes manifests."
+    },
+    {
+      "id": 55,
+      "topic_number": 13,
+      "topic": "Advanced Infrastructure & Hosting Options (GKE vs. Vertex AI Endpoints) and Data Splitting",
+      "question_number": 2,
+      "question": "You work as an ML researcher at an investment bank, and you are experimenting with the Gemma LLM. You plan to deploy the model for an internal use case. You need to have full control of the model's underlying infrastructure and minimize the model's inference time. Which serving configuration should you use for this task?",
+      "options": [
+        "Deploy the model on a Google Kubernetes Engine (GKE) cluster manually by creating a custom inference container and deploy the cluster using a YAML manifest.",
+        "Deploy the model on an Agent Platform endpoint manually by creating a custom inference container.",
+        "Deploy the model on an Agent Platform endpoint by using one-click deployment in Model Garden.",
+        "Deploy the model on a Google Kubernetes Engine (GKE) cluster by using the deployment options in Model Garden."
+      ],
+      "correct_answer": 1,
+      "explanation": "Technical Explanation: When explicit requirements call for full control over underlying infrastructure (custom networking, driver tuning, host OS settings) and ultra-low latency tuning, deploying custom inference containers via YAML manifests on self-managed GKE clusters provides complete low-level control compared to managed platform abstractions."
+    },
+    {
+      "id": 56,
+      "topic_number": 13,
+      "topic": "Advanced Infrastructure & Hosting Options (GKE vs. Vertex AI Endpoints) and Data Splitting",
+      "question_number": 3,
+      "question": "You work for a retail company. You have a managed tabular dataset in Gemini Enterprise Agent Platform that contains regional sales data for each item across stores. The dataset includes features such as store name, items sold, and sale timestamp. You want to train a classification model that predicts whether an item will sell out in the coming week. What approach should you use to split the data between training, validation, and test sets?",
+      "options": [
+        "Use the default data split settings.",
+        "Randomly split the data, assigning 70% of rows to training, 10% to validation, and 20% to test.",
+        "Manually split the data, using the store name feature to assign stores.",
+        "Chronologically split the data and specify the sales timestamp feature as the time variable."
+      ],
+      "correct_answer": 4,
+      "explanation": "Technical Explanation: Predicting future events (like next week's inventory sell-out) using historical timestamps requires a temporal/chronological data split. Random splitting introduces look-ahead bias (data leakage) by mixing future records into the training set. REFERENCE SOURCES Vertex AI Model Monitoring & Skew/Drift Detection Vertex AI Model Monitoring Documentation: GCP Documentation: Monitor models for data drift and skew Model Monitoring Metrics & Thresholds: GCP Documentation: Using feature drift and skew detection BigQuery ML & Time Series Forecasting (ARIMA_PLUS) BigQuery ML Overview: GCP Documentation: Introduction to ML in BigQuery BigQuery ML ARIMA_PLUS Model: GCP Documentation: The CREATE MODEL statement for time series models (ARIMA_PLUS) BigQuery ML ML.FORECAST Function: GCP Documentation: The ML.FORECAST function Vertex AI Feature Store & Point-in-Time Lookups Vertex AI Feature Store Overview: GCP Documentation: Vertex AI Feature Store Overview Point-in-Time Lookups (Time Travel Joins): GCP Documentation: Point-in-time time travel lookups for training data Generative AI, Context Caching, and Safety Guardrails Context Caching in Gemini API / Vertex AI: GCP Documentation: Context Caching Overview for Gemini API Vertex AI Model Armor & Safety Controls: GCP Documentation: Model Armor and Safety Filters Vertex AI AutoSxS (Automatic Side-by-Side) Evaluation: GCP Documentation: Perform Side-by-Side Model Evaluation (AutoSxS) Custom Prediction Routines (CPR) & Endpoint Deployment Custom Prediction Routines (CPR): GCP Documentation: Build custom prediction routines on Vertex AI Vertex AI Endpoint Autoscaling: GCP Documentation: Autoscale prediction nodes on Vertex AI Endpoints MLOps Orchestration, Kubeflow Pipelines, & Model Registry Vertex AI Pipelines (Kubeflow Pipelines SDK): GCP Documentation: Introduction to Vertex AI Pipelines Vertex AI Model Registry & Model Aliases: GCP Documentation: Manage model versions and aliases in Model Registry Managed ML APIs (Document AI, Cloud Vision, Natural Language) Cloud Document AI Processors: GCP Documentation: Cloud Document AI Specialized Processors Cloud Vision API SafeSearch Detection: GCP Documentation: Detecting Explicit Content with Cloud Vision Cloud Natural Language API: GCP Documentation: Analyzing Sentiment with Natural Language API"
+    }
+  ]
+}
