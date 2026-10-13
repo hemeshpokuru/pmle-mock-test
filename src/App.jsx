@@ -34,6 +34,8 @@ function App() {
   const [autoSubmitted, setAutoSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [reviewTopic, setReviewTopic] = useState("all");
+  const [reviewStatus, setReviewStatus] = useState("all");
 
   useEffect(() => {
     fetch("/question_bank.json")
@@ -71,6 +73,8 @@ function App() {
     setTimeLeft(TEST_DURATION);
     setShowSubmitModal(false);
     setAutoSubmitted(false);
+    setReviewTopic("all");
+    setReviewStatus("all");
     setScreen("test");
   };
 
@@ -160,6 +164,39 @@ function App() {
     };
   }, [questions, answers]);
 
+  const topics = useMemo(() => {
+    return [...new Set(questions.map((question) => question.topic || "Uncategorized"))]
+      .sort((a, b) => a.localeCompare(b));
+  }, [questions]);
+
+  const topicSummary = useMemo(() => {
+    const summary = {};
+    questions.forEach((question, index) => {
+      const topic = question.topic || "Uncategorized";
+      if (!summary[topic]) summary[topic] = { total: 0, correct: 0, wrong: 0, unanswered: 0 };
+      summary[topic].total += 1;
+      const selected = answers[index];
+      if (selected === undefined) summary[topic].unanswered += 1;
+      else if (Number(selected) === Number(question.correct_answer)) summary[topic].correct += 1;
+      else summary[topic].wrong += 1;
+    });
+    return Object.entries(summary).sort(([a], [b]) => a.localeCompare(b));
+  }, [questions, answers]);
+
+  const reviewItems = useMemo(() => {
+    return questions.map((question, index) => {
+      const selected = answers[index];
+      const correctAnswer = Number(question.correct_answer);
+      const status = selected === undefined
+        ? "unanswered"
+        : Number(selected) === correctAnswer ? "correct" : "wrong";
+      return { question, index, selected, correctAnswer, status };
+    }).filter(({ question, status }) => {
+      const topicMatches = reviewTopic === "all" || (question.topic || "Uncategorized") === reviewTopic;
+      return topicMatches && (reviewStatus === "all" || status === reviewStatus);
+    });
+  }, [questions, answers, reviewTopic, reviewStatus]);
+
   const tryAgain = () => {
     setQuestions([]);
     setAnswers({});
@@ -168,6 +205,8 @@ function App() {
     setTimeLeft(TEST_DURATION);
     setShowSubmitModal(false);
     setAutoSubmitted(false);
+    setReviewTopic("all");
+    setReviewStatus("all");
     setScreen("start");
   };
 
@@ -231,7 +270,7 @@ function App() {
             </div>
 
             <div>
-              <strong>110</strong>
+              <strong>{questionBank.length}</strong>
               <span>Question Bank</span>
             </div>
           </div>
@@ -509,53 +548,138 @@ function App() {
   if (screen === "result") {
     return (
       <div className="result-page">
-        <main className="result-card">
-          <div className="result-icon">★</div>
+        <main className="result-content">
+          <section className="result-card">
+            <div className="result-icon">★</div>
+            <span className="result-label">{autoSubmitted ? "TIME EXPIRED" : "TEST COMPLETED"}</span>
+            <h1>Your Result</h1>
+            <p>
+              {autoSubmitted
+                ? "The test was submitted automatically because the timer reached zero."
+                : "Your mock test has been submitted successfully."}
+            </p>
+            <div className="score">
+              <strong>{result.correct}<span>/{result.total}</span></strong>
+              <div>{result.percentage}%</div>
+            </div>
+            <div className="result-stats">
+              <div className="result-stat correct"><span className="stat-symbol">✓</span><strong>{result.correct}</strong><span>Correct</span></div>
+              <div className="result-stat wrong"><span className="stat-symbol">×</span><strong>{result.wrong}</strong><span>Wrong</span></div>
+              <div className="result-stat skipped"><span className="stat-symbol">−</span><strong>{result.unanswered}</strong><span>Unanswered</span></div>
+            </div>
+            <button className="try-again-button" onClick={tryAgain}>↻ Try Again</button>
+          </section>
 
-          <span className="result-label">
-            {autoSubmitted ? "TIME EXPIRED" : "TEST COMPLETED"}
-          </span>
+          <section className="topic-performance">
+            <div className="review-section-heading">
+              <div>
+                <span className="result-label">PERFORMANCE BREAKDOWN</span>
+                <h2>Topic-wise performance</h2>
+                <p>See how you performed in each topic covered in this test. Select a topic to review its questions.</p>
+              </div>
+            </div>
+            <div className="topic-summary-list">
+              {topicSummary.map(([topic, stats]) => (
+                <button type="button" className="topic-summary-row" key={topic} onClick={() => {
+                  setReviewTopic(topic);
+                  setReviewStatus("all");
+                  document.getElementById("answer-review")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}>
+                  <span className="topic-summary-name">{topic}</span>
+                  <span className="topic-summary-count">{stats.correct}/{stats.total} correct</span>
+                  <span className="topic-summary-track"><span style={{ width: `${stats.total ? (stats.correct / stats.total) * 100 : 0}%` }} /></span>
+                  <span className="topic-summary-meta"><span>{stats.wrong} wrong</span><span>{stats.unanswered} skipped</span></span>
+                  <span className="topic-summary-arrow">View questions →</span>
+                </button>
+              ))}
+            </div>
+          </section>
 
-          <h1>Your Result</h1>
-
-          <p>
-            {autoSubmitted
-              ? "The test was submitted automatically because the timer reached zero."
-              : "Your mock test has been submitted successfully."}
-          </p>
-
-          <div className="score">
-            <strong>
-              {result.correct}
-              <span>/{result.total}</span>
-            </strong>
-
-            <div>{result.percentage}%</div>
-          </div>
-
-          <div className="result-stats">
-            <div className="result-stat correct">
-              <span className="stat-symbol">✓</span>
-              <strong>{result.correct}</strong>
-              <span>Correct</span>
+          <section className="answer-review" id="answer-review">
+            <div className="review-section-heading">
+              <div>
+                <span className="result-label">LEARN FROM YOUR ANSWERS</span>
+                <h2>Answer review</h2>
+                <p>See your submitted answer, the correct answer, and the rationale provided in the question bank.</p>
+              </div>
             </div>
 
-            <div className="result-stat wrong">
-              <span className="stat-symbol">×</span>
-              <strong>{result.wrong}</strong>
-              <span>Wrong</span>
+            <div className="review-filters">
+              <label>
+                <span>Filter by topic</span>
+                <select value={reviewTopic} onChange={(event) => setReviewTopic(event.target.value)}>
+                  <option value="all">All topics</option>
+                  {topics.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Filter by result</span>
+                <select value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)}>
+                  <option value="all">All answers</option>
+                  <option value="correct">Correct</option>
+                  <option value="wrong">Incorrect</option>
+                  <option value="unanswered">Unanswered</option>
+                </select>
+              </label>
+              <div className="review-result-count">Showing {reviewItems.length} of {questions.length} questions</div>
             </div>
 
-            <div className="result-stat skipped">
-              <span className="stat-symbol">−</span>
-              <strong>{result.unanswered}</strong>
-              <span>Unanswered</span>
+            {reviewItems.length === 0 ? (
+              <div className="review-empty">No questions match these filters. Try selecting a different topic or result.</div>
+            ) : (
+              <div className="review-question-list">
+                {reviewItems.map(({ question, index, selected, correctAnswer, status }) => (
+                  <article className={`review-question-card ${status}`} key={`${question.id ?? "q"}-${index}`}>
+                    <div className="review-question-meta">
+                      <span className="review-question-number">Question {index + 1}</span>
+                      <span className={`review-status-badge ${status}`}>
+                        {status === "correct" ? "✓ Correct" : status === "wrong" ? "✕ Incorrect" : "— Unanswered"}
+                      </span>
+                    </div>
+                    {question.topic && <div className="topic-label review-topic-label">{question.topic}</div>}
+                    <h3>{question.question}</h3>
+                    <div className="review-options">
+                      {question.options.map((option, optionIndex) => {
+                        const optionNumber = optionIndex + 1;
+                        const isCorrect = optionNumber === correctAnswer;
+                        const isSelected = selected !== undefined && Number(selected) === optionNumber;
+                        return (
+                          <div key={optionIndex} className={[
+                            "review-option",
+                            isCorrect ? "is-correct" : "",
+                            isSelected && !isCorrect ? "is-wrong-selected" : "",
+                            isSelected ? "is-selected" : "",
+                          ].filter(Boolean).join(" ")}>
+                            <span className="option-label">{OPTION_LABELS[optionIndex]}</span>
+                            <span className="option-text">{option}</span>
+                            <span className="review-option-tag">{isCorrect ? "Correct answer" : isSelected ? "Your answer" : ""}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="answer-comparison">
+                      <div className={`answer-callout ${status === "correct" ? "is-correct" : "is-neutral"}`}>
+                        <strong>Your answer</strong>
+                        <span>{selected === undefined ? "Not answered" : `${OPTION_LABELS[Number(selected) - 1]}. ${question.options[Number(selected) - 1]}`}</span>
+                      </div>
+                      <div className="answer-callout is-correct">
+                        <strong>Correct answer</strong>
+                        <span>{OPTION_LABELS[correctAnswer - 1]}. {question.options[correctAnswer - 1]}</span>
+                      </div>
+                    </div>
+                    <div className="rationale-box">
+                      <strong><span>ⓘ</span> Rationale</strong>
+                      <p>{question.explanation || "No rationale was provided for this question in the source question bank."}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+            <div className="review-bottom-actions">
+              <button className="try-again-button" onClick={tryAgain}>↻ Take Another Mock Test</button>
+              <button className="back-to-top-button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑ Back to top</button>
             </div>
-          </div>
-
-          <button className="try-again-button" onClick={tryAgain}>
-            ↻ Try Again
-          </button>
+          </section>
         </main>
       </div>
     );
